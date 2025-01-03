@@ -20,9 +20,9 @@ def parse_args(custom_args:dict=None):
     # Encoder / Decoder parameters setting
     parser.add_argument('--nums_hidden', type=int, default=32,
                         help='size of hidden states for the encoder m [64, 128]')
-    parser.add_argument('--LAMBDA', type=float, default=0.55,
+    parser.add_argument('--LAMBDA', type=float, default=0.4,
                         help='判别损失权重')
-    parser.add_argument('--ALPHA', type=float, default=0.05,
+    parser.add_argument('--ALPHA', type=float, default=0.2,
                         help='源域回归器权重')
     # parser.add_argument('--nhidden_decoder', type=int, default=16,
     #                     help='size of hidden states for the decoder p [64, 128]')
@@ -32,7 +32,7 @@ def parse_args(custom_args:dict=None):
     parser.add_argument('--epochs', type=int, default=200, help='number of epochs to train [10, 200, 500]')
     parser.add_argument('--lr', type=float, default=1e-4,
                         help='learning rate [0.001] reduced by 0.1 after each 10000 iterations')
-    parser.add_argument('--seed', type=int, default=100, help='random seed to use. Default=100')
+    parser.add_argument('--seed', type=int, default=688, help='random seed to use. Default=100')
     parser.add_argument('--debug', type=bool, default=False, help='whether in debug mode or not')
 
     # Parse arguments

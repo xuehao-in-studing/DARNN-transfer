@@ -53,7 +53,12 @@ class DaNN_with_DALSTM(nn.Module):
         #     nn.Linear((self.encoder_num_hidden + self.decoder_num_hidden) // 2, 2)
         #     # Binary classification for domain (source vs target)
         # )
-        self.domain_classifier = nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 2)
+
+        self.domain_classifier = nn.Sequential(
+            nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 2),
+            # nn.ReLU(),
+            # nn.LogSoftmax(dim=1)
+        )
 
         # Classifier (for final task classification)
         # self.regressor = nn.Sequential(
@@ -72,7 +77,7 @@ class DaNN_with_DALSTM(nn.Module):
         self.domain_classifier_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad,
                                                                           self.domain_classifier.parameters()),
                                                             lr=self.learning_rate)
-        self.early_stopping = EarlyStopping(patience=4, verbose=True)
+        self.early_stopping = EarlyStopping(patience=5, verbose=True)
 
     def forward(self, X_src, X_tar, y_prev_src, y_prev_tar, alpha):
         # Extract features from source and target using DA-RNN Encoder

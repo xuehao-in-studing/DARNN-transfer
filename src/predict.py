@@ -58,12 +58,16 @@ def predict(args):
     rmse = RMSE(y_preds, y_true)
     print(f"RMSE: {rmse}")
     # plot
+    y_preds = test_tar_Y_scaler.inverse_transform(y_preds)
+    y_true = test_tar_Y_scaler.inverse_transform(y_true)
+
     fig = plt.figure(figsize=(12, 8), dpi=720)
     plt.plot(y_preds, label='Predicted')
     plt.plot(y_true, label="True")
     plt.legend(loc='upper left')
     plt.xlabel('Ring')
     plt.ylabel(f'{args.object_col}')
+    plt.title(f'{args.object_col} Prediction, acc: {acc*100:.2f}%, RMSE: {rmse:.2f}')
     plt.savefig(f"../plots/{args.object_col}.png")
     plt.close(fig)
     print("==> Predict finished")
