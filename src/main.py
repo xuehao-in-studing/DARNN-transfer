@@ -5,7 +5,7 @@ from torch import nn
 from tqdm import tqdm
 from src.arguments import parse_args
 from src.load_data import load_data
-from src.model import DaNN_with_DALSTM
+from src.model import DANN_with_DALSTM
 from src.utils import setup_seed, accuracy, RMSE
 
 
@@ -28,7 +28,7 @@ def train(args):
     y_prev = next(iter(data_src))[1]
 
     print("==> Initialize DALSTM model ...")
-    model = DaNN_with_DALSTM(X, y_prev, args.ntimestep, args.nums_hidden,
+    model = DANN_with_DALSTM(X, y_prev, args.ntimestep, args.nums_hidden,
                              args.batchsize, args.lr, args.epochs)
     model = model.to(device)
     criterion_dis_src = nn.CrossEntropyLoss()
@@ -54,13 +54,20 @@ def train(args):
                   leave=True) as pbar_epoch:
             for batch_id, (x_src, y_src_prev, y_src_true) in enumerate(data_src):
                 _, (x_tar, y_tar_prev, y_tar_true) = list_tar[batch_j]
+                # Move data to device
+                x_src, x_tar = x_src.to(device), x_tar.to(device)
+                y_src_prev, y_tar_prev = y_src_prev.to(device), y_tar_prev.to(device)
+                y_src_true, y_tar_true = y_src_true.to(device), y_tar_true.to(device)
+
+                # Zero the gradients
                 model.feature_extractor.encoder_optimizer.zero_grad()
                 model.feature_extractor.decoder_optimizer.zero_grad()
                 model.regressor_optimizer.zero_grad()
                 model.domain_classifier_optimizer.zero_grad()
 
-                pred_src, pred_tar, domain_pred_src, domain_pred_tar = model(
-                    x_src, x_tar, y_src_prev, y_tar_prev, alpha)
+                pred_src, domain_pred_src = model(x_src, y_src_prev, alpha)
+                pred_tar, domain_pred_tar = model(x_tar, y_tar_prev, alpha)
+
                 # 用0标记为源域，1标记为目标域
                 zero_tensor = torch.zeros(domain_pred_src.shape[0]).long()
                 # 创建一个形状为 (batch_size, 1) 的全一张量
@@ -89,15 +96,8 @@ def train(args):
             model.eval()
             with torch.no_grad():
                 for i, (X, y_prev, y_true) in enumerate(test_data_trg):
-                    pred_src, pred_tar, domain_pred_src, domain_pred_tar = model(
-                        X, X, y_prev, y_prev, alpha)
-                    # # 用0标记为源域，1标记为目标域
-                    # zero_tensor = torch.zeros(domain_pred_src.shape[0]).long()
-                    # # 创建一个形状为 (batch_size, 1) 的全一张量
-                    # one_tensor = torch.ones(domain_pred_src.shape[0]).long()
-                    # loss_dis_src = criterion_dis_src(domain_pred_src, one_tensor)
-                    # loss_dis_tar = criterion_dis_tar(domain_pred_tar, one_tensor)
-                    # loss_pred_src = criterion_pred_src(pred_src, y_true)
+                    pred_tar, domain_pred_tar = model(
+                        X, y_prev, alpha)
                     loss_pred_tar = criterion_pred_tar(pred_tar, y_true)
                     # 测试不在关心域分类损失和源域预测损失
                     loss = loss_pred_tar

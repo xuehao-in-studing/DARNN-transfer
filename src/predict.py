@@ -5,7 +5,7 @@ from torch import nn
 from tqdm import tqdm
 from src.arguments import parse_args
 from src.load_data import load_data
-from src.model import DaNN_with_DALSTM
+from src.model import DANN_with_DALSTM
 from src.utils import setup_seed, accuracy, RMSE
 
 
@@ -26,7 +26,7 @@ def predict(args):
     y_prev = next(iter(test_data_trg))[1]
 
     print("==> Initialize DALSTM model ...")
-    model = DaNN_with_DALSTM(X, y_prev, args.ntimestep, args.nums_hidden,
+    model = DANN_with_DALSTM(X, y_prev, args.ntimestep, args.nums_hidden,
                              args.batchsize, args.lr, args.epochs)
     model_path = f'../models/GZ_{args.object_col}.pt'
     model.load_state_dict(torch.load(model_path))

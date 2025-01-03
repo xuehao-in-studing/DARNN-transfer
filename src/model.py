@@ -23,11 +23,11 @@ class ReverseLayerF(Function):
         return output, None
 
 
-class DaNN_with_DALSTM(nn.Module):
+class DANN_with_DALSTM(nn.Module):
     def __init__(self, X, y, T, num_hidden, batch_size, learning_rate=1e-3, epochs: int = 200,
                  parallel: bool = False,
                  ):
-        super(DaNN_with_DALSTM, self).__init__()
+        super(DANN_with_DALSTM, self).__init__()
 
         self.encoder_num_hidden = num_hidden
         self.decoder_num_hidden = num_hidden
@@ -79,25 +79,19 @@ class DaNN_with_DALSTM(nn.Module):
                                                             lr=self.learning_rate)
         self.early_stopping = EarlyStopping(patience=5, verbose=True)
 
-    def forward(self, X_src, X_tar, y_prev_src, y_prev_tar, alpha):
+    def forward(self, X, y_prev, alpha):
         # Extract features from source and target using DA-RNN Encoder
-        feature_src = self.feature_extractor(X_src, y_prev_src)
-        feature_tar = self.feature_extractor(X_tar, y_prev_tar)
+        feature = self.feature_extractor(X, y_prev)
 
-        reverse_feature_src = ReverseLayerF.apply(feature_src, alpha)
-        # reverse_feature_src = reverse_feature_src.permute(1, 0, 2)
-        reverse_feature_tar = ReverseLayerF.apply(feature_tar, alpha)
-        # reverse_feature_tar = reverse_feature_tar.permute(1, 0, 2)
+        reverse_feature = ReverseLayerF.apply(feature, alpha)
 
         # Domain Adaptation: Forward pass through the domain classifier (for adversarial loss)
-        domain_pred_src = self.domain_classifier(reverse_feature_src.view(feature_src.size(0), -1))
-        domain_pred_tar = self.domain_classifier(reverse_feature_tar.view(feature_tar.size(0), -1))
+        domain_pred = self.domain_classifier(reverse_feature.view(feature.size(0), -1))
 
         # Classification: Forward pass through the final task classifier
-        val_pred_src = self.regressor(feature_src.view(feature_src.size(0), -1))
-        val_pred_tar = self.regressor(feature_tar.view(feature_tar.size(0), -1))
+        val_pred = self.regressor(feature.view(feature.size(0), -1))
 
-        return val_pred_src, val_pred_tar, domain_pred_src, domain_pred_tar
+        return val_pred, domain_pred
 
 
 if __name__ == '__main__':
@@ -109,7 +103,7 @@ if __name__ == '__main__':
     dummy_X_tar = torch.rand(batch, T, input_size)
     dummy_y_prev_src = torch.rand(batch, T - 1)
     dummy_y_prev_tar = torch.rand(batch, T - 1)
-    model = DaNN_with_DALSTM(dummy_X_src, dummy_y_prev_src, T, num_hidden, batch)
+    model = DANN_with_DALSTM(dummy_X_src, dummy_y_prev_src, T, num_hidden, batch)
     # torchinfo
     from torchinfo import summary
 
