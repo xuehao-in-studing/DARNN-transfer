@@ -39,8 +39,7 @@ def predict(args):
     # predict
     for batch_j, (x_tar, y_tar_prev, y_tar_true) in test_data:
         model.eval()
-        pred_src, pred_tar, domain_pred_src, domain_pred_tar = model(
-            x_tar, x_tar, y_tar_prev, y_tar_prev, 0.5)
+        pred_tar, domain_pred_tar = model(X, y_prev, 0.5)
         if batch_j == 0:
             # y_preds.append(pred_tar.detach().cpu().numpy())
             # y_true.append(y_tar_true.detach().cpu().numpy())
