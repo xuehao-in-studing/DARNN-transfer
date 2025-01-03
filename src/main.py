@@ -96,12 +96,11 @@ def train(args):
             model.eval()
             with torch.no_grad():
                 for i, (X, y_prev, y_true) in enumerate(test_data_trg):
-                    pred_tar, domain_pred_tar = model(
-                        X, y_prev, alpha)
+                    X, y_prev, y_true = X.to(device), y_prev.to(device), y_true.to(device)
+                    pred_tar, domain_pred_tar = model(X, y_prev, alpha)
                     loss_pred_tar = criterion_pred_tar(pred_tar, y_true)
                     # 测试不在关心域分类损失和源域预测损失
                     loss = loss_pred_tar
-
                     test_loss += loss.item()
                     test_acc += accuracy(y_true, pred_tar)
                     # Set postfix with both train loss and test loss at the end of epoch
