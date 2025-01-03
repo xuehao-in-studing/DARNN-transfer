@@ -69,9 +69,9 @@ def train(args):
                 pred_tar, domain_pred_tar = model(x_tar, y_tar_prev, alpha)
 
                 # 用0标记为源域，1标记为目标域
-                zero_tensor = torch.zeros(domain_pred_src.shape[0]).long()
+                zero_tensor = torch.zeros(domain_pred_src.shape[0]).long().to(device)
                 # 创建一个形状为 (batch_size, 1) 的全一张量
-                one_tensor = torch.ones(domain_pred_src.shape[0]).long()
+                one_tensor = torch.ones(domain_pred_src.shape[0]).long().to(device)
                 loss_dis_src = criterion_dis_src(domain_pred_src, one_tensor)
                 loss_dis_tar = criterion_dis_tar(domain_pred_tar, zero_tensor)
                 loss_pred_src = criterion_pred_src(pred_src, y_src_true)
