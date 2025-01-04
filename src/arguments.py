@@ -14,7 +14,7 @@ def parse_args(custom_args:dict=None):
 
     # Dataset setting
     parser.add_argument('--dataroot', type=str, default="../data/东线环切数据_DJ_5.csv", help='path to dataset')
-    parser.add_argument('--object_col', type=str, default="DX_DW_1", help='object column in the dataset')
+    parser.add_argument('--object_col', type=str, default="DJ_5", help='object column in the dataset')
     parser.add_argument('--batchsize', type=int, default=32, help='input batch size [128]')
 
     # Encoder / Decoder parameters setting

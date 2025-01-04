@@ -13,13 +13,14 @@ from src.utils import setup_seed
 
 # 读取model
 
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+device = "cpu"
 def get_model(args):
     """Get model and data."""
     # Initialize model
     setup_seed(args.seed)
     print("==> Load dataset ...")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     T = args.ntimestep
     # data
     data_src, src_X_scaler, src_Y_scaler = load_data("../data",
@@ -56,10 +57,12 @@ if __name__ == '__main__':
     src_features = torch.Tensor()
     tar_features = torch.Tensor()
     for i, (x_src, y_src_prev, y_src_true) in list_src:
+        x_src, y_src_prev, y_src_true = x_src.to(device), y_src_prev.to(device), y_src_true.to(device)
         model(x_src, y_src_prev, 0.5)
         # cat
         src_features = torch.cat((src_features, features), 0)
     for i, (x_tar, y_tar_prev, y_tar_true) in test_data_trg:
+        x_tar, y_tar_prev, y_tar_true = x_tar.to(device), y_tar_prev.to(device), y_tar_true.to(device)
         model(x_tar, y_tar_prev, 0.5)
         # cat
         tar_features = torch.cat((tar_features, features), 0)
@@ -78,8 +81,9 @@ if __name__ == '__main__':
 
     # 绘制源域和目标域的特征分布图
     plt.figure(figsize=(8, 6), dpi=480)
-    plt.scatter(source_features_2d[:, 0], source_features_2d[:, 1], label='Source Domain', alpha=0.3)
-    plt.scatter(target_features_2d[:, 0], target_features_2d[:, 1], label='Target Domain', alpha=0.3)
+    plt.scatter(source_features_2d[:, 0], source_features_2d[:, 1], label='Source Domain', alpha=0.8, s=10)
+    plt.scatter(target_features_2d[:, 0], target_features_2d[:, 1], label='Target Domain', alpha=0.8, s=10)
     plt.title('Feature Distribution Before Domain Adaptation')
     plt.legend()
+    plt.savefig('../plots/feature_distribution_before_domain_adaptation.png')
     plt.show()
