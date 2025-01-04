@@ -15,14 +15,14 @@ def parse_args(custom_args:dict=None):
     # Dataset setting
     parser.add_argument('--dataroot', type=str, default="../data/东线环切数据_DJ_5.csv", help='path to dataset')
     parser.add_argument('--object_col', type=str, default="DX_DW_1", help='object column in the dataset')
-    parser.add_argument('--batchsize', type=int, default=16, help='input batch size [128]')
+    parser.add_argument('--batchsize', type=int, default=32, help='input batch size [128]')
 
     # Encoder / Decoder parameters setting
     parser.add_argument('--nums_hidden', type=int, default=32,
                         help='size of hidden states for the encoder m [64, 128]')
     parser.add_argument('--LAMBDA', type=float, default=0.4,
                         help='判别损失权重')
-    parser.add_argument('--ALPHA', type=float, default=0.2,
+    parser.add_argument('--ALPHA', type=float, default=0.5,
                         help='源域回归器权重')
     # parser.add_argument('--nhidden_decoder', type=int, default=16,
     #                     help='size of hidden states for the decoder p [64, 128]')
@@ -30,9 +30,9 @@ def parse_args(custom_args:dict=None):
 
     # Training parameters setting
     parser.add_argument('--epochs', type=int, default=200, help='number of epochs to train [10, 200, 500]')
-    parser.add_argument('--lr', type=float, default=1e-4,
+    parser.add_argument('--lr', type=float, default=5e-4,
                         help='learning rate [0.001] reduced by 0.1 after each 10000 iterations')
-    parser.add_argument('--seed', type=int, default=688, help='random seed to use. Default=100')
+    parser.add_argument('--seed', type=int, default=643, help='random seed to use. Default=100')
     parser.add_argument('--debug', type=bool, default=False, help='whether in debug mode or not')
 
     # Parse arguments
