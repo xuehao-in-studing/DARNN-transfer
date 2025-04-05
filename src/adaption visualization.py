@@ -5,9 +5,9 @@ from torch import nn
 
 from src.arguments import parse_args
 from src.load_data import load_data
+from src.mmd import linear_mmd2
 from src.model import DANN_with_DALSTM
 from src.utils import setup_seed
-
 
 # Visualization of the domain classifier and regressor
 
@@ -16,6 +16,8 @@ from src.utils import setup_seed
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 device = "cpu"
+
+
 def get_model(args):
     """Get model and data."""
     # Initialize model
@@ -26,9 +28,9 @@ def get_model(args):
     data_src, src_X_scaler, src_Y_scaler = load_data("../data",
                                                      "ZJ", args.batchsize, args.object_col, T)
     data_tar, tar_X_scaler, tar_Y_scaler = load_data("../data",
-                                                     "HZW/train", args.batchsize, args.object_col, T)
+                                                     f"{args.targetdomain}/train", args.batchsize, args.object_col, T)
     test_data_trg, test_tar_X_scaler, test_tar_Y_scaler = load_data("../data",
-                                                                    "HZW/test", args.batchsize, args.object_col, T)
+                                                                    f"{args.targetdomain}/test", args.batchsize, args.object_col, T)
 
     X = next(iter(data_src))[0]
     y_prev = next(iter(data_src))[1]
@@ -37,7 +39,7 @@ def get_model(args):
     model = DANN_with_DALSTM(X, y_prev, args.ntimestep, args.nums_hidden,
                              args.batchsize, args.lr, args.epochs)
     model = model.to(device)
-    model_path = f'../models/GZ_{args.object_col}.pt'
+    model_path = f'../models/{args.targetdomain}_{args.object_col}.pt'
     model.load_state_dict(torch.load(model_path))
     list_src, test_data_trg = list(enumerate(data_src)), list(enumerate(test_data_trg))
     return model, list_src, test_data_trg
@@ -78,6 +80,21 @@ if __name__ == '__main__':
     tsne = TSNE(n_components=2)
     source_features_2d = tsne.fit_transform(src_features)
     target_features_2d = tsne.fit_transform(tar_features)
+
+    len_src = int(source_features_2d.shape[0] / target_features_2d.shape[0])
+    # src 截断为与 tar 一样的长度
+    mmd = 0
+    # 计算KL散度
+    kl_loss = nn.KLDivLoss(reduction='batchmean')
+    kl = 0
+
+    for i in range(len_src - 1):
+        source_feature = src_features[i * tar_features.shape[0]:(i + 1) * tar_features.shape[0], :]
+        mmd += linear_mmd2(torch.FloatTensor(source_feature), torch.FloatTensor(tar_features))
+        kl += kl_loss(torch.log_softmax(torch.FloatTensor(source_feature), dim=1),
+                      torch.softmax(torch.FloatTensor(tar_features), dim=1))
+    print(f"mmd: {mmd}")
+    print(f"kl: {kl}")
 
     # 绘制源域和目标域的特征分布图
     plt.figure(figsize=(8, 6), dpi=480)

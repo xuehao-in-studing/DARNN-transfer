@@ -25,6 +25,7 @@ class ReverseLayerF(Function):
 
 class DANN_with_DALSTM(nn.Module):
     def __init__(self, X, y, T, num_hidden, batch_size, learning_rate=1e-3, epochs: int = 200,
+                 model_path: str = None,
                  parallel: bool = False,
                  ):
         super(DANN_with_DALSTM, self).__init__()
@@ -77,7 +78,7 @@ class DANN_with_DALSTM(nn.Module):
         self.domain_classifier_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad,
                                                                           self.domain_classifier.parameters()),
                                                             lr=self.learning_rate)
-        self.early_stopping = EarlyStopping(patience=5, verbose=True)
+        self.early_stopping = EarlyStopping(patience=5, verbose=True,path=model_path)
 
     def forward(self, X, y_prev, alpha):
         # Extract features from source and target using DA-RNN Encoder

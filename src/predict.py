@@ -19,17 +19,18 @@ def predict(args):
     # data
     # data_src, src_X_scaler, src_Y_scaler = load_data("../data", "ZJ", args.batchsize)
     # data_tar, tar_X_scaler, tar_Y_scaler = load_data("../data", "HZW/train", args.batchsize)
-    test_data_trg, test_tar_X_scaler, test_tar_Y_scaler = load_data("../data", "HZW/test",
+    test_data_trg, test_tar_X_scaler, test_tar_Y_scaler = load_data("../data", f"{args.targetdomain}/test",
                                                                     args.batchsize, args.object_col, T)
 
     X = next(iter(test_data_trg))[0]
     y_prev = next(iter(test_data_trg))[1]
 
     print("==> Initialize DALSTM model ...")
+    print(f"==> target domain is {args.targetdomain}, object_col is {args.object_col}")
     model = DANN_with_DALSTM(X, y_prev, args.ntimestep, args.nums_hidden,
                              args.batchsize, args.lr, args.epochs)
-    model_path = f'../models/GZ_{args.object_col}.pt'
-    model.load_state_dict(torch.load(model_path))
+    model_path = f'../models/{args.targetdomain}_{args.object_col}.pt'
+    model.load_state_dict(torch.load(model_path), )
 
     model = model.to(device)
 
@@ -67,7 +68,7 @@ def predict(args):
     plt.legend(loc='upper left')
     plt.xlabel('Ring')
     plt.ylabel(f'{args.object_col}')
-    plt.title(f'{args.object_col} Prediction, acc: {acc*100:.2f}%, RMSE: {rmse:.2f}')
+    plt.title(f'{args.object_col} Prediction, acc: {acc * 100:.2f}%, RMSE: {rmse:.2f}')
     plt.savefig(f"../plots/{args.object_col}.png")
     plt.close(fig)
     print("==> Predict finished")

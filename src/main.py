@@ -20,16 +20,17 @@ def train(args):
     data_src, src_X_scaler, src_Y_scaler = load_data("../data",
                                                      "ZJ", args.batchsize, args.object_col, T)
     data_tar, tar_X_scaler, tar_Y_scaler = load_data("../data",
-                                                     "HZW/train", args.batchsize, args.object_col, T)
+                                                     f"{args.targetdomain}/train", args.batchsize, args.object_col, T)
     test_data_trg, test_tar_X_scaler, test_tar_Y_scaler = load_data("../data",
-                                                                    "HZW/test", args.batchsize, args.object_col, T)
+                                                                    f"{args.targetdomain}/test", args.batchsize, args.object_col, T)
 
     X = next(iter(data_src))[0]
     y_prev = next(iter(data_src))[1]
 
     print("==> Initialize DALSTM model ...")
     model = DANN_with_DALSTM(X, y_prev, args.ntimestep, args.nums_hidden,
-                             args.batchsize, args.lr, args.epochs)
+                             args.batchsize, args.lr, args.epochs,
+                             model_path=f'../models/{args.targetdomain}_{args.object_col}.pt')
     model = model.to(device)
     criterion_dis_src = nn.CrossEntropyLoss()
     criterion_dis_tar = nn.CrossEntropyLoss()
@@ -77,7 +78,7 @@ def train(args):
                 loss_dis_tar = criterion_dis_tar(domain_pred_tar, zero_tensor)
                 loss_pred_src = criterion_pred_src(pred_src, y_src_true)
                 loss_pred_tar = criterion_pred_tar(pred_tar, y_tar_true)
-                loss = -LAMBDA * (loss_dis_src + loss_dis_tar) + (1 - LAMBDA) * (
+                loss = -LAMBDA * (loss_dis_src + loss_dis_tar) + (
                         ALPHA * loss_pred_src + (1 - ALPHA) * loss_pred_tar)
 
                 loss.backward()
@@ -101,6 +102,8 @@ def train(args):
                     pred_tar, domain_pred_tar = model(X, y_prev, alpha)
                     loss_pred_tar = criterion_pred_tar(pred_tar, y_true)
                     # 测试不在关心域分类损失和源域预测损失
+                    # loss = -LAMBDA * (loss_dis_src + loss_dis_tar) + (
+                    #     ALPHA * loss_pred_src + (1 - ALPHA) * loss_pred_tar)
                     loss = loss_pred_tar
                     test_loss += loss.item()
                     test_acc += accuracy(y_true, pred_tar)
