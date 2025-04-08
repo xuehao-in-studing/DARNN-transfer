@@ -55,7 +55,7 @@ def train(args):
         with tqdm(total=iter_per_epoch, desc=f"Epoch {epoch + 1}/{model.epochs}", position=0,
                   leave=True) as pbar_epoch:
             for batch_id, (x_src, y_src_prev, y_src_true) in enumerate(data_src):
-                _, (x_tar, y_tar_prev, y_tar_true) = list_test_tar[batch_j]
+                _, (x_tar, y_tar_prev, y_tar_true) = list_tar[batch_j]
                 # Move data to device
                 x_src, x_tar = x_src.to(device), x_tar.to(device)
                 y_src_prev, y_tar_prev = y_src_prev.to(device), y_tar_prev.to(device)
