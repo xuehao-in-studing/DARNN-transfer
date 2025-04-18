@@ -129,6 +129,23 @@ def get_weights(losses):
     return list(exp_losses / sum_exp)
 
 
+## 写一个tensor版本的get_weights
+def get_weights_tensor(losses):
+    """
+    数值稳定版本（避免指数下溢）
+
+    :param losses: list[float] 或 np.ndarray
+    :return: 权重列表
+    """
+    losses = torch.tensor(losses)
+    # 找到最大负损失（等同于最小损失）
+    max_neg_loss = torch.max(-losses)
+    # 计算调整后的指数
+    exp_losses = torch.exp(-losses - max_neg_loss)
+    sum_exp = exp_losses.sum()
+    return exp_losses / sum_exp
+
+
 if __name__ == '__main__':
     # start_time = time.time()
     # time.sleep(5)
@@ -136,4 +153,6 @@ if __name__ == '__main__':
     arr = [2, 5, 1, 12, 1]
     arr = np.array(arr)
     weights = get_weights(arr)
+    (w1, w2) = get_weights_tensor([1, 2])
+    print(w1)
     print(weights)

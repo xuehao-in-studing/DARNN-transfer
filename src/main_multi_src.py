@@ -7,7 +7,7 @@ from src.arguments import parse_args
 from src.load_data import load_data
 from src.mmd import mix_rbf_mmd2
 from src.model import DANN_with_DALSTM, DANN_with_DALSTM_Multi_Src
-from src.utils import setup_seed, accuracy, RMSE, get_weights
+from src.utils import setup_seed, accuracy, RMSE, get_weights, get_weights_tensor
 
 """
 多源域向单源域迁移
@@ -94,7 +94,7 @@ def train(args):
                 feature_tar, pred_tar, domain_pred_tar = model(x_tar, y_tar_prev, alpha)
                 l1 = mix_rbf_mmd2(feature_src1, feature_tar, [0.1, 0.5, 1.0])
                 l2 = mix_rbf_mmd2(feature_src2, feature_tar, [0.1, 0.5, 1.0])
-                (w1, w2) = get_weights([l1.detach().numpy(), l2.detach().numpy()])
+                (w1, w2) = get_weights_tensor([l1, l2])
 
                 # 用0标记为源域，1标记为目标域
                 zero_tensor = torch.zeros(domain_pred_src1.shape[0]).long().to(device)
