@@ -35,7 +35,8 @@ def train(args):
     X = next(iter(data_src1))[0]
     y_prev = next(iter(data_src1))[1]
 
-    print("==> Initialize DALSTM model ...")
+    print("==> Initialize DANN_with_DALSTM_Multi_Src model, 多源域实验开始 ...")
+    print(f"==> target domain is {args.targetdomain}, object_col is {args.object_col}, device is {device}")
     model = DANN_with_DALSTM_Multi_Src(X, y_prev, args.ntimestep, args.nums_hidden,
                                        args.batchsize, args.lr, args.epochs,
                                        model_path=f'../models/{args.targetdomain}_{args.object_col}.pt')
