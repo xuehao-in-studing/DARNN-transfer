@@ -80,7 +80,7 @@ def train(args):
 
                 y_src1_prev, y_src2_prev, y_tar_prev = y_src1_prev.to(device), y_src2_prev.to(device), y_tar_prev.to(
                     device)
-                y_src1_true, y_src2_prev, y_tar_true = y_src1_true.to(device), y_src2_prev.to(device), y_tar_true.to(
+                y_src1_true, y_src2_true, y_tar_true = y_src1_true.to(device), y_src2_true.to(device), y_tar_true.to(
                     device)
 
                 # Zero the gradients
@@ -105,7 +105,7 @@ def train(args):
                 loss_dis_src2 = criterion_dis_src2(domain_pred_src2, two_tensor)
                 loss_dis_tar = criterion_dis_tar(domain_pred_tar, zero_tensor)
                 loss_pred_src1 = criterion_pred_src1(pred_src1, y_src1_true)
-                loss_pred_src2 = criterion_pred_src2(pred_src2, y_src2_prev)
+                loss_pred_src2 = criterion_pred_src2(pred_src2, y_src2_true)
                 loss_pred_tar = criterion_pred_tar(pred_tar, y_tar_true)
 
                 loss = -LAMBDA * (w1 * loss_dis_src1 + w2 * loss_dis_src2 + loss_dis_tar) + (
