@@ -115,8 +115,11 @@ def train(args):
                 loss_pred_src2 = criterion_pred_src2(pred_src2, y_src2_true)
                 loss_pred_tar = criterion_pred_tar(pred_tar, y_tar_true)
 
-                loss = -LAMBDA * (w1 * loss_dis_src1 + w2 * loss_dis_src2 + loss_dis_tar) + (
-                        (1 - BETA) * (w1 * loss_pred_src1 + w2 * loss_pred_src2) + BETA * loss_pred_tar)
+                # loss = -LAMBDA * (w1 * loss_dis_src1 + w2 * loss_dis_src2 + loss_dis_tar) + (
+                #         (1 - BETA) * (w1 * loss_pred_src1 + w2 * loss_pred_src2) + BETA * loss_pred_tar)
+                ## 对比实验，去掉权重
+                loss = -LAMBDA * (loss_dis_src1 + loss_dis_src2 + loss_dis_tar) + (
+                        (1 - BETA) * (loss_pred_src1 + loss_pred_src2) + BETA * loss_pred_tar)
 
                 loss.backward()
                 model.feature_extractor.encoder_optimizer.step()
