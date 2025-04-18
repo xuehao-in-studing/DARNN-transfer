@@ -14,7 +14,7 @@ def parse_args(custom_args:dict=None):
 
     # Dataset setting
     # parser.add_argument('--dataroot', type=str, default="../data/东线环切数据_DJ_5.csv", help='path to dataset')
-    parser.add_argument('--object_col', type=str, default="DJ_5", help='object column in the dataset')
+    parser.add_argument('--object_col', type=str, default="DX_DS_1", help='object column in the dataset')
     parser.add_argument('--batchsize', type=int, default=32, help='input batch size [128]')
     parser.add_argument('--targetdomain', type=str, default="HZW", help='input batch size [128]')
 
@@ -33,7 +33,7 @@ def parse_args(custom_args:dict=None):
     parser.add_argument('--epochs', type=int, default=200, help='number of epochs to train [10, 200, 500]')
     parser.add_argument('--lr', type=float, default=4e-4,
                         help='learning rate [0.001] reduced by 0.1 after each 10000 iterations')
-    parser.add_argument('--seed', type=int, default=2048, help='random seed to use. Default=100')
+    parser.add_argument('--seed', type=int, default=1010, help='random seed to use. Default=100')
     parser.add_argument('--debug', type=bool, default=False, help='whether in debug mode or not')
 
     # Parse arguments

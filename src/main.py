@@ -22,7 +22,8 @@ def train(args):
     data_tar, tar_X_scaler, tar_Y_scaler = load_data("../data",
                                                      f"{args.targetdomain}/train", args.batchsize, args.object_col, T)
     test_data_trg, test_tar_X_scaler, test_tar_Y_scaler = load_data("../data",
-                                                                    f"{args.targetdomain}/test", args.batchsize, args.object_col, T)
+                                                                    f"{args.targetdomain}/test", args.batchsize,
+                                                                    args.object_col, T)
 
     X = next(iter(data_src))[0]
     y_prev = next(iter(data_src))[1]
@@ -81,6 +82,8 @@ def train(args):
                 loss_pred_tar = criterion_pred_tar(pred_tar, y_tar_true)
                 loss = -LAMBDA * (loss_dis_src + loss_dis_tar) + (
                         (1 - BETA) * loss_pred_src + BETA * loss_pred_tar)
+                # # 原始DANN
+                # loss = -LAMBDA * (loss_dis_src + loss_dis_tar) + loss_pred_src
 
                 loss.backward()
                 model.feature_extractor.encoder_optimizer.step()

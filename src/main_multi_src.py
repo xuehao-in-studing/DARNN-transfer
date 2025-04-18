@@ -3,6 +3,8 @@ import torch
 from matplotlib import pyplot as plt
 from torch import nn
 from tqdm import tqdm
+
+from src.CORAL import CORAL
 from src.arguments import parse_args
 from src.load_data import load_data
 from src.mmd import mix_rbf_mmd2
@@ -34,6 +36,7 @@ def train(args):
 
     X = next(iter(data_src1))[0]
     y_prev = next(iter(data_src1))[1]
+    coral = CORAL()
 
     print("==> Initialize DANN_with_DALSTM_Multi_Src model, 多源域实验开始 ...")
     print(f"==> target domain is {args.targetdomain}, object_col is {args.object_col}, device is {device}")
@@ -92,8 +95,12 @@ def train(args):
                 feature_src1, pred_src1, domain_pred_src1 = model(x_src1, y_src1_prev, alpha)
                 feature_src2, pred_src2, domain_pred_src2 = model(x_src2, y_src2_prev, alpha)
                 feature_tar, pred_tar, domain_pred_tar = model(x_tar, y_tar_prev, alpha)
-                l1 = mix_rbf_mmd2(feature_src1, feature_tar, [0.1, 0.5, 1.0])
-                l2 = mix_rbf_mmd2(feature_src2, feature_tar, [0.1, 0.5, 1.0])
+                # l1 = mix_rbf_mmd2(feature_src1, feature_tar, [0.1, 0.5, 1.0])
+                # l2 = mix_rbf_mmd2(feature_src2, feature_tar, [0.1, 0.5, 1.0])
+                # (w1, w2) = get_weights_tensor([l1, l2])
+                # 对比实验CORAL
+                l1 = coral(feature_src1, feature_tar)
+                l2 = coral(feature_src2, feature_tar)
                 (w1, w2) = get_weights_tensor([l1, l2])
 
                 # 用0标记为源域，1标记为目标域
