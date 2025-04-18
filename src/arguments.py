@@ -23,8 +23,8 @@ def parse_args(custom_args:dict=None):
                         help='size of hidden states for the encoder m [64, 128]')
     parser.add_argument('--LAMBDA', type=float, default=0.4,
                         help='判别损失权重')
-    parser.add_argument('--ALPHA', type=float, default=0.2,
-                        help='源域回归器权重')
+    parser.add_argument('--BETA', type=float, default=0.8,
+                        help='目标域回归器权重')
     # parser.add_argument('--nhidden_decoder', type=int, default=16,
     #                     help='size of hidden states for the decoder p [64, 128]')
     parser.add_argument('--ntimestep', type=int, default=10, help='the number of time steps in the window T [10]')

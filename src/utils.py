@@ -113,7 +113,27 @@ def setup_seed(seed):
     torch.random.manual_seed(seed)
 
 
+def get_weights(losses):
+    """
+    数值稳定版本（避免指数下溢）
+
+    :param losses: list[float] 或 np.ndarray
+    :return: 权重列表
+    """
+    losses = np.asarray(losses)
+    # 找到最大负损失（等同于最小损失）
+    max_neg_loss = np.max(-losses)
+    # 计算调整后的指数
+    exp_losses = np.exp(-losses - max_neg_loss)
+    sum_exp = exp_losses.sum()
+    return list(exp_losses / sum_exp)
+
+
 if __name__ == '__main__':
-    start_time = time.time()
-    time.sleep(5)
-    print(f"Time consumed: {time.time() - start_time} seconds")
+    # start_time = time.time()
+    # time.sleep(5)
+    # print(f"Time consumed: {time.time() - start_time} seconds")
+    arr = [2, 5, 1, 12, 1]
+    arr = np.array(arr)
+    weights = get_weights(arr)
+    print(weights)

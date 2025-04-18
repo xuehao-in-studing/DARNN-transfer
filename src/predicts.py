@@ -1,9 +1,10 @@
 import argparse
 import sys
-from predict import predict
 from src.arguments import parse_args
 
 if __name__ == '__main__':
+    # from predict import predict # 单源域
+    from predict_mulit_src import predict # 多源域
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--targetdomain', required=True, help='Path to the data root')
