@@ -97,9 +97,8 @@ def train(args):
                 loss_pred_shared = (criterion_pred_src(pred_src, y_src_true) + criterion_pred_tar(pred_tar,
                                                                                                   y_tar_true)) / 2
                 loss_orth = orthogonality_loss(shared_feature, src_private_feature, tar_private_feature)
-                loss_cls_private = (criterion_cls_src(src_domain_class, one_tensor) + criterion_cls_tar(
-                    tar_domain_class,
-                    zero_tensor)) / 2
+                loss_cls_private = (criterion_cls_src(src_domain_class, one_tensor) +
+                                    criterion_cls_tar(tar_domain_class, zero_tensor)) / 2
                 loss_pre_private = criterion_pred_tar_private(tar_private_pred, y_tar_true)
                 loss_pred = loss_pred_shared + loss_pre_private
                 loss = loss_pred - LAMBDA * (loss_dis) + (

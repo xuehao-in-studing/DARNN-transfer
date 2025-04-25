@@ -70,13 +70,13 @@ if __name__ == '__main__':
         (pred_src, domain_pred_src, src_domain_class, _, src_private_pred, _,
          shared_feature, src_private_feature, _) = model(x_src, y_src_prev, 0.5)
         # cat
-        src_features = torch.cat((src_features, src_private_feature), 0)
+        src_features = torch.cat((src_features, shared_feature), 0)
     for i, (x_tar, y_tar_prev, y_tar_true) in test_data_trg:
         x_tar, y_tar_prev, y_tar_true = x_tar.to(device), y_tar_prev.to(device), y_tar_true.to(device)
         (pred_tar, domain_pred_tar, _, tar_domain_class, _, tar_private_pred,
          shared_feature, _, tar_private_feature) = model(x_tar, y_tar_prev, 0.5)
         # cat
-        tar_features = torch.cat((tar_features, tar_private_feature), 0)
+        tar_features = torch.cat((tar_features, shared_feature), 0)
 
     # hook.remove()
     # 提取源域和目标域的特征
@@ -121,5 +121,7 @@ if __name__ == '__main__':
     ax.spines['right'].set_visible(False)
     ax.spines['bottom'].set_visible(False)
     ax.spines['left'].set_visible(False)
+    ax.axis('off')
+
     plt.savefig('../plots/feature_distribution_before_domain_adaptation.png')
     plt.show()

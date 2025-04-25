@@ -101,8 +101,8 @@ class FS_DANN(nn.Module):
         src_domain_class = self.domain_classifier(src_private_feature.view(shared_feature.size(0), -1))
         tar_domain_class = self.domain_classifier(tar_private_feature.view(shared_feature.size(0), -1))
 
-        src_private_pred = self.private_regressor(src_private_feature.view(shared_feature.size(0), -1))
-        tar_private_pred = self.private_regressor(tar_private_feature.view(shared_feature.size(0), -1))
+        src_private_pred = self.private_regressor(src_private_feature.view(src_private_feature.size(0), -1))
+        tar_private_pred = self.private_regressor(tar_private_feature.view(tar_private_feature.size(0), -1))
 
         # Classification: Forward pass through the final task classifier
         val_pred = self.shared_regressor(shared_feature.view(shared_feature.size(0), -1))
