@@ -149,12 +149,12 @@ def train(args):
                     if i == 0:
                         y_preds_shared = pred_tar.detach().cpu().numpy()
                         y_preds_private = tar_private_pred.detach().cpu().numpy()
-                        y_preds_plot = np.mean(y_preds_private, y_preds_shared)
+                        y_preds_plot = (y_preds_private + y_preds_shared) / 2.0
                         y_tar_true_plot = y_true.detach().cpu().numpy()
                     else:
-                        y_preds_shared = np.vstack((y_preds_shared, pred_tar.detach().cpu().numpy()))
-                        y_preds_private = np.vstack((y_preds_private, tar_private_pred.detach().cpu().numpy()))
-                        y_preds_plot = np.vstack((y_preds_plot, np.mean(y_preds_private, y_preds_shared)))
+                        y_preds_shared = pred_tar.detach().cpu().numpy()
+                        y_preds_private = tar_private_pred.detach().cpu().numpy()
+                        y_preds_plot = np.vstack((y_preds_plot, (y_preds_private + y_preds_shared) / 2.0))
                         y_tar_true_plot = np.vstack((y_tar_true_plot, y_true.detach().cpu().numpy()))
                 y_preds_plot = np.vstack(y_preds_plot)
                 y_tar_true_plot = np.vstack(y_tar_true_plot)
