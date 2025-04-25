@@ -30,7 +30,7 @@ def train(args):
     X = next(iter(data_src))[0]
     y_prev = next(iter(data_src))[1]
 
-    print("==> Initialize DANN_with_DALSTM model，单源域实验开始 ...")
+    print("==> Initialize FS_DANN model，单源域实验开始 ...")
     print(f"==> target domain is {args.targetdomain}, object_col is {args.object_col}, device is {device}")
     model = FS_DANN(X, y_prev, args.ntimestep, args.nums_hidden,
                     args.batchsize, args.lr, args.epochs,
@@ -93,13 +93,13 @@ def train(args):
                 # 创建一个形状为 (batch_size, 1) 的全一张量
                 one_tensor = torch.ones(domain_pred_src.shape[0]).long().to(device)
                 loss_dis = (criterion_dis_src(domain_pred_src, one_tensor) + criterion_dis_tar(domain_pred_tar,
-                                                                                               zero_tensor)) / 2
+                                                                                               zero_tensor))
                 loss_pred_shared = (criterion_pred_src(pred_src, y_src_true) + criterion_pred_tar(pred_tar,
-                                                                                                  y_tar_true)) / 2
+                                                                                                  y_tar_true))
                 loss_orth = orthogonality_loss(src_shared_feature, tar_shared_feature,
                                                src_private_feature, tar_private_feature)
                 loss_cls_private = (criterion_cls_src(src_domain_class, one_tensor) +
-                                    criterion_cls_tar(tar_domain_class, zero_tensor)) / 2
+                                    criterion_cls_tar(tar_domain_class, zero_tensor))
                 loss_pre_private = criterion_pred_tar_private(tar_private_pred, y_tar_true)
                 loss_pred = loss_pred_shared + loss_pre_private
                 loss = loss_pred - LAMBDA * (loss_dis) + (

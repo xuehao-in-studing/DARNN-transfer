@@ -134,30 +134,31 @@ def train(args):
                 one_tensor = torch.ones(domain_pred_src1.shape[0]).long().to(device)
                 two_tensor = torch.ones(domain_pred_src1.shape[0]).long().to(device) * 2
                 src_domain_label = [one_tensor, two_tensor]
-                loss_dis_src = sum(
-                    crit(pred, label)
-                    for crit, pred, label in zip(criterion_dis_src, domain_pred_src, src_domain_label)
-                )
+
 
                 loss_dis_tar = criterion_dis_tar(domain_pred_tar, zero_tensor)
+
+                loss_pred_tar = criterion_pred_tar(val_pred_tar, y_tar_true)
+                loss_pred_tar_private = criterion_pred_tar(tar_private_pred, y_tar_true)
+                loss_dis_src = sum(
+                    w* crit(pred, label)
+                    for crit, pred, label, w in zip(criterion_dis_src, domain_pred_src, src_domain_label, weight_mmd)
+                )
                 loss_pred_src = sum(
                     w * crit(pred, label)
                     for crit, pred, label, w in
                     zip(criterion_pred_src, val_pred_src, [y_src1_true, y_src2_true], weight_mmd)
                 )
-                loss_pred_tar = criterion_pred_tar(val_pred_tar, y_tar_true)
-                loss_pred_tar_private = criterion_pred_tar(tar_private_pred, y_tar_true)
-
                 loss_cls_src = sum(
-                    w * crit(pred, label)
-                    for crit, pred, label, w in
-                    zip(criterion_cls_src, domain_pred_src_class, src_domain_label, weight_mmd)
+                    crit(pred, label)
+                    for crit, pred, label in
+                    zip(criterion_cls_src, domain_pred_src_class, src_domain_label)
                 )
                 loss_cls_tar = criterion_cls_tar(tar_domain_class, zero_tensor)
 
-                loss = loss_pred_src/2.0 + loss_pred_tar + loss_pred_tar_private
-                - LAMBDA * (loss_dis_src/2.0 + loss_dis_tar)
-                + ALPHA * (loss_cls_src/2.0 + loss_cls_tar) + BETA * orthogonality_loss_multi(
+                loss = loss_pred_src/num_src + loss_pred_tar + loss_pred_tar_private
+                - LAMBDA * (loss_dis_src/num_src + loss_dis_tar)
+                + ALPHA * (loss_cls_src/num_src + loss_cls_tar) + BETA * orthogonality_loss_multi(
                     src_shared_features, src_private_features, tar_shared_feature, tar_private_feature)
 
                 ## 对比实验，去掉权重
