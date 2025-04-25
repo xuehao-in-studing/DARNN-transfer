@@ -30,8 +30,8 @@ def parse_args(custom_args:dict=None):
     parser.add_argument('--ntimestep', type=int, default=10, help='the number of time steps in the window T [10]')
 
     # Training parameters setting
-    parser.add_argument('--epochs', type=int, default=200, help='number of epochs to train [10, 200, 500]')
-    parser.add_argument('--lr', type=float, default=4e-3,
+    parser.add_argument('--epochs', type=int, default=100, help='number of epochs to train [10, 200, 500]')
+    parser.add_argument('--lr', type=float, default=2e-3,
                         help='learning rate [0.001] reduced by 0.1 after each 10000 iterations')
     parser.add_argument('--seed', type=int, default=2028, help='random seed to use. Default=100')
     parser.add_argument('--debug', type=bool, default=False, help='whether in debug mode or not')

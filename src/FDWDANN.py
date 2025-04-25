@@ -7,7 +7,7 @@ from src.DALSTM import DALSTM
 from src.early_stopping import EarlyStopping
 from torch.autograd import Function
 
-from src.utils import orthogonality_loss
+from src.utils import orthogonality_loss, orthogonality_loss_multi
 
 """论文终稿的模型"""
 
@@ -27,12 +27,12 @@ class ReverseLayerF(Function):
         return output, None
 
 
-class FS_DANN(nn.Module):
+class FDW_DANN(nn.Module):
     def __init__(self, X, y, T, num_hidden, batch_size, learning_rate=1e-3, epochs: int = 200,
                  model_path: str = None,
                  parallel: bool = False,
                  ):
-        super(FS_DANN, self).__init__()
+        super(FDW_DANN, self).__init__()
 
         self.encoder_num_hidden = num_hidden
         self.decoder_num_hidden = num_hidden
@@ -49,21 +49,24 @@ class FS_DANN(nn.Module):
         self.shared_feature_extractor = DALSTM(self.X, self.y, self.T, self.encoder_num_hidden, self.decoder_num_hidden,
                                                self.batch_size, self.learning_rate, self.epochs,
                                                self.parallel)
-        self.src_feature_extractor = DALSTM(self.X, self.y, self.T, self.encoder_num_hidden,
-                                            self.decoder_num_hidden, self.batch_size, self.learning_rate, self.epochs,
-                                            self.parallel)
+        self.src1_feature_extractor = DALSTM(self.X, self.y, self.T, self.encoder_num_hidden,
+                                             self.decoder_num_hidden, self.batch_size, self.learning_rate, self.epochs,
+                                             self.parallel)
+        self.src2_feature_extractor = DALSTM(self.X, self.y, self.T, self.encoder_num_hidden,
+                                             self.decoder_num_hidden, self.batch_size, self.learning_rate, self.epochs,
+                                             self.parallel)
         self.tar_feature_extractor = DALSTM(self.X, self.y, self.T, self.encoder_num_hidden,
                                             self.decoder_num_hidden, self.batch_size, self.learning_rate, self.epochs,
                                             self.parallel)
 
         self.domain_discriminator = nn.Sequential(
-            nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 2),
+            nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 3),
             # nn.ReLU(),
             # nn.LogSoftmax(dim=1)
         )
 
         self.domain_classifier = nn.Sequential(
-            nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 2),
+            nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 3),
         )
 
         self.shared_regressor = nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 1)
@@ -90,7 +93,9 @@ class FS_DANN(nn.Module):
         # Extract features from source and target using DA-RNN Encoder
         shared_feature = self.shared_feature_extractor(X, y_prev)
 
-        src_private_feature = self.src_feature_extractor(X, y_prev)
+        src1_private_feature = self.src1_feature_extractor(X, y_prev)
+        src2_private_feature = self.src2_feature_extractor(X, y_prev)
+
         tar_private_feature = self.tar_feature_extractor(X, y_prev)
 
         reverse_shared_feature = ReverseLayerF.apply(shared_feature, alpha)
@@ -98,17 +103,18 @@ class FS_DANN(nn.Module):
         # Domain Adaptation: Forward pass through the domain classifier (for adversarial loss)
         domain_pred = self.domain_discriminator(reverse_shared_feature.view(shared_feature.size(0), -1))
 
-        src_domain_class = self.domain_classifier(src_private_feature.view(shared_feature.size(0), -1))
+        src1_domain_class = self.domain_classifier(src1_private_feature.view(shared_feature.size(0), -1))
+        src2_domain_class = self.domain_classifier(src2_private_feature.view(shared_feature.size(0), -1))
         tar_domain_class = self.domain_classifier(tar_private_feature.view(shared_feature.size(0), -1))
 
-        src_private_pred = self.private_regressor(src_private_feature.view(src_private_feature.size(0), -1))
+        # src_private_pred = self.private_regressor(src1_private_feature.view(src1_private_feature.size(0), -1))
         tar_private_pred = self.private_regressor(tar_private_feature.view(tar_private_feature.size(0), -1))
 
         # Classification: Forward pass through the final task classifier
         val_pred = self.shared_regressor(shared_feature.view(shared_feature.size(0), -1))
 
-        return (val_pred, domain_pred, src_domain_class, tar_domain_class, src_private_pred, tar_private_pred,
-                shared_feature, src_private_feature, tar_private_feature)
+        return (val_pred, domain_pred, src1_domain_class, src2_domain_class, tar_domain_class, tar_private_pred,
+                shared_feature, src1_private_feature, src2_private_feature, tar_private_feature)
 
 
 if __name__ == '__main__':
@@ -120,14 +126,17 @@ if __name__ == '__main__':
     dummy_X_tar = torch.rand(batch, T, input_size)
     dummy_y_prev_src = torch.rand(batch, T - 1)
     dummy_y_prev_tar = torch.rand(batch, T - 1)
-    model = FS_DANN(dummy_X_src, dummy_y_prev_src, T, num_hidden, batch)
+    model = FDW_DANN(dummy_X_src, dummy_y_prev_src, T, num_hidden, batch)
     # torchinfo
     from torchinfo import summary
 
-    (val_pred, domain_pred, src_domain_class, tar_domain_class, src_private_pred, tar_private_pred, shared_feature,
-     src_private_feature, tar_private_feature) = model(dummy_X_src, dummy_y_prev_src, 0.5)
+    (val_pred, domain_pred, src1_domain_class, src2_domain_class, tar_domain_class,
+     tar_private_pred, shared_feature, src1_private_feature, src2_private_feature, tar_private_feature) = (
+        model(dummy_X_src, dummy_y_prev_src, 0.5))
 
-    or_loss = orthogonality_loss(shared_feature, shared_feature, src_private_feature, tar_private_feature)
+    or_loss = orthogonality_loss_multi(shared_feature,
+                                       [src1_private_feature, src2_private_feature], tar_private_feature)
+
     print(f"shape of or_loss:{or_loss.size()}, val is {or_loss}")
     summary(model, input_size=[(batch, T, input_size), (batch, T - 1,), (batch, T - 1,)])
     # model(dummy_X_src, dummy_X_tar, dummy_y_prev_src, dummy_y_prev_tar)

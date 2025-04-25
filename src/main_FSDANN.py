@@ -84,9 +84,9 @@ def train(args):
                 model.domain_discriminator_optimizer.zero_grad()
 
                 (pred_src, domain_pred_src, src_domain_class, _, src_private_pred, _,
-                 shared_feature, src_private_feature, _) = model(x_src, y_src_prev, alpha)
+                 src_shared_feature, src_private_feature, _) = model(x_src, y_src_prev, alpha)
                 (pred_tar, domain_pred_tar, _, tar_domain_class, _, tar_private_pred,
-                 shared_feature, _, tar_private_feature) = model(x_tar, y_tar_prev, alpha)
+                 tar_shared_feature, _, tar_private_feature) = model(x_tar, y_tar_prev, alpha)
 
                 # 用0标记为源域，1标记为目标域
                 zero_tensor = torch.zeros(domain_pred_src.shape[0]).long().to(device)
@@ -96,7 +96,8 @@ def train(args):
                                                                                                zero_tensor)) / 2
                 loss_pred_shared = (criterion_pred_src(pred_src, y_src_true) + criterion_pred_tar(pred_tar,
                                                                                                   y_tar_true)) / 2
-                loss_orth = orthogonality_loss(shared_feature, src_private_feature, tar_private_feature)
+                loss_orth = orthogonality_loss(src_shared_feature, tar_shared_feature,
+                                               src_private_feature, tar_private_feature)
                 loss_cls_private = (criterion_cls_src(src_domain_class, one_tensor) +
                                     criterion_cls_tar(tar_domain_class, zero_tensor)) / 2
                 loss_pre_private = criterion_pred_tar_private(tar_private_pred, y_tar_true)
@@ -130,7 +131,7 @@ def train(args):
                 for i, (X, y_prev, y_true) in enumerate(test_data_trg):
                     X, y_prev, y_true = X.to(device), y_prev.to(device), y_true.to(device)
                     (pred_tar, domain_pred_tar, _, tar_domain_class, _, tar_private_pred,
-                     shared_feature, _, tar_private_feature) = model(X, y_prev, alpha)
+                     tar_shared_feature, _, tar_private_feature) = model(X, y_prev, alpha)
                     loss_pred_tar = (criterion_pred_tar(pred_tar, y_true) + criterion_pred_tar_private(tar_private_pred,
                                                                                                        y_true)) / 2
                     # 测试不在关心域分类损失和源域预测损失

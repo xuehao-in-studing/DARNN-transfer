@@ -146,85 +146,177 @@ def get_weights_tensor(losses):
     return exp_losses / sum_exp
 
 
-def orthogonality_loss(H_c: torch.Tensor, H_ps: torch.Tensor, H_pt: torch.Tensor,
-                       normalize: bool = False) -> torch.Tensor:
+def orthogonality_loss(H_c_source: torch.Tensor, H_p_source: torch.Tensor,
+                                H_c_target: torch.Tensor, H_p_target: torch.Tensor,
+                                normalize: bool = False) -> torch.Tensor:
     """
-    计算正交损失 L_diff = || H_c^T H_ps ||_F^2 + || H_c^T H_pt ||_F^2
+    根据公式计算正交损失:
+    L_diff = || H_cs^T H_ps ||_F^2 + || H_ct^T H_pt ||_F^2
+    其中 H_cs, H_ps 是源域的公共/私有特征,
+    H_ct, H_pt 是目标域的公共/私有特征。
 
     Args:
-        H_c (torch.Tensor): 公共特征张量, 形状例如 (N, D_c).
-        H_ps (torch.Tensor): 源域私有特征张量, 形状例如 (N, D_ps).
-        H_pt (torch.Tensor): 目标域私有特征张量, 形状例如 (N, D_pt).
-        normalize (bool, optional): 是否根据批次大小 N 对损失进行归一化. 默认为 False.
+        H_c_source (torch.Tensor): 源域公共特征张量, 形状例如 (N, D_cs).
+        H_p_source (torch.Tensor): 源域私有特征张量, 形状例如 (N, D_ps).
+        H_c_target (torch.Tensor): 目标域公共特征张量, 形状例如 (N, D_ct).
+                                   (D_ct 可能等于 D_cs). 第一个维度 N 必须匹配.
+        H_p_target (torch.Tensor): 目标域私有特征张量, 形状例如 (N, D_pt).
+                                   第一个维度 N 必须匹配.
+        normalize (bool, optional): 是否根据批次大小 N 对总损失进行归一化. 默认为 False.
 
     Returns:
         torch.Tensor: 计算得到的标量损失值.
 
     Raises:
-        ValueError: 如果输入张量不是二维或批次大小不匹配.
+        ValueError: 如果输入张量不是二维或批次大小 (N) 不匹配.
     """
     # --- 输入检查 ---
-    if not (H_c.ndim == 2 and H_ps.ndim == 2 and H_pt.ndim == 2):
-        raise ValueError("输入张量 H_c, H_ps, H_pt 都必须是二维的 (例如, batch_size x feature_dim)")
+    if not (H_c_source.ndim == 2 and H_p_source.ndim == 2 and
+            H_c_target.ndim == 2 and H_p_target.ndim == 2):
+        raise ValueError("所有输入张量 H_c_source, H_p_source, H_c_target, H_p_target 都必须是二维的")
 
-    batch_size = H_c.shape[0]
-    if H_ps.shape[0] != batch_size or H_pt.shape[0] != batch_size:
-        raise ValueError("所有输入张量的第一个维度 (batch_size) 必须相同。")
+    batch_size = H_c_source.shape[0]
+    if not (H_p_source.shape[0] == batch_size and
+            H_c_target.shape[0] == batch_size and
+            H_p_target.shape[0] == batch_size):
+        raise ValueError(
+            f"所有输入张量的第一个维度 (batch_size) 必须相同。 "
+            f"获取到的大小为: H_c_source={H_c_source.shape[0]}, "
+            f"H_p_source={H_p_source.shape[0]}, H_c_target={H_c_target.shape[0]}, "
+            f"H_p_target={H_p_target.shape[0]}"
+        )
 
-    # --- 计算第一项: || H_c^T H_ps ||_F^2 ---
-    # 转置 H_c: (N, Dc) -> (Dc, N)
-    H_c_T = H_c.t()
-    # 矩阵乘法: (Dc, N) @ (N, Dps) -> (Dc, Dps)
-    product_s = torch.matmul(H_c_T, H_ps)
-    # 计算平方 Frobenius 范数 (所有元素的平方和)
-    loss_s = torch.sum(product_s ** 2)
+    # --- 计算源域项: || H_cs^T H_ps ||_F^2 ---
+    H_cs_T = H_c_source.t()  # 转置: (N, Dcs) -> (Dcs, N)
+    product_s = torch.matmul(H_cs_T, H_p_source)  # 矩阵乘法: (Dcs, N) @ (N, Dps) -> (Dcs, Dps)
+    loss_s = torch.sum(product_s ** 2)  # 平方 Frobenius 范数
 
-    # --- 计算第二项: || H_c^T H_pt ||_F^2 ---
-    # 可以复用 H_c_T
-    # 矩阵乘法: (Dc, N) @ (N, Dpt) -> (Dc, Dpt)
-    product_t = torch.matmul(H_c_T, H_pt)
-    # 计算平方 Frobenius 范数
-    loss_t = torch.sum(product_t ** 2)
+    # --- 计算目标域项: || H_ct^T H_pt ||_F^2 ---
+    H_ct_T = H_c_target.t()  # 转置: (N, Dct) -> (Dct, N)
+    product_t = torch.matmul(H_ct_T, H_p_target)  # 矩阵乘法: (Dct, N) @ (N, Dpt) -> (Dct, Dpt)
+    loss_t = torch.sum(product_t ** 2)  # 平方 Frobenius 范数
 
     # --- 总损失 ---
     total_loss = loss_s + loss_t
 
     # --- 可选的归一化 ---
-    # 有时为了让损失值不受 batch size 影响，会进行归一化
     if normalize and batch_size > 0:
-        # 除以 batch size 是一个常见的选择
         total_loss = total_loss / batch_size
-        # 或者可以除以乘积矩阵的元素总数，但除以 N 更常见
-        # num_elements_s = product_s.numel()
-        # num_elements_t = product_t.numel()
-        # total_loss = loss_s / num_elements_s + loss_t / num_elements_t
 
     return total_loss
 
 
-# --- 如何在 PyTorch 训练循环中使用 ---
-# 假设你从模型的不同部分获取了 H_c, H_ps, H_pt 张量
-# H_c_features = model.common_encoder(input_data)
-# H_ps_features = model.source_private_encoder(source_data)
-# H_pt_features = model.target_private_encoder(target_data) # 或者来自同一个模型的不同分支
+def orthogonality_loss_multi(
+    H_c_source_list: List[torch.Tensor],
+    H_p_source_list: List[torch.Tensor],
+    H_c_target: torch.Tensor,
+    H_p_target: torch.Tensor,
+    normalize: bool = False
+) -> torch.Tensor:
+    """
+    根据公式计算正交损失:
+    L_diff = || H_ct^T H_pt ||_F^2 + Sum_i || H_csi^T H_psi ||_F^2
+    其中 H_csi, H_psi 是第 i 个源域的公共/私有特征 (来自列表),
+    H_ct, H_pt 是目标域的公共/私有特征。
 
-# 计算损失
-# orth_loss = orthogonality_loss(H_c_features, H_ps_features, H_pt_features, normalize=True)
+    Args:
+        H_c_source_list (List[torch.Tensor]): 包含 N_s 个 *源域* 公共特征张量的列表。
+                                             每个 H_csi 形状例如 (N, D_csi)。
+        H_p_source_list (List[torch.Tensor]): 包含 N_s 个 *源域* 私有特征张量的列表。
+                                             每个 H_psi 形状例如 (N, D_psi)。
+                                             长度必须与 H_c_source_list 相同。
+                                             所有张量的 N 必须与 H_c_target 的 N 相同。
+        H_c_target (torch.Tensor): *目标域* 公共特征张量, 形状例如 (N, D_ct)。
+        H_p_target (torch.Tensor): *目标域* 私有特征张量, 形状例如 (N, D_pt)。
+                                     第一个维度 N 必须与 H_c_source_list 中的张量相同。
+        normalize (bool, optional): 是否根据批次大小 N 对总损失进行归一化. 默认为 False.
 
-# 将这个损失添加到你的总损失中 (可能需要一个权重系数)
-# total_training_loss = main_task_loss + lambda_orth * orth_loss
+    Returns:
+        torch.Tensor: 计算得到的标量损失值.
 
-# 执行反向传播
-# total_training_loss.backward()
-# optimizer.step()
+    Raises:
+        ValueError: 如果输入不合法 (列表长度不匹配, 非二维, 批次大小不匹配等).
+    """
+    # --- 输入检查 ---
+    if len(H_c_source_list) != len(H_p_source_list):
+        raise ValueError(
+            f"源域公共特征列表 H_c_source_list (长度 {len(H_c_source_list)}) 和 "
+            f"源域私有特征列表 H_p_source_list (长度 {len(H_p_source_list)}) 必须具有相同的长度。"
+        )
+    if H_c_target.ndim != 2 or H_p_target.ndim != 2:
+        raise ValueError("输入张量 H_c_target 和 H_p_target 必须是二维的。")
+
+    # 使用目标域张量获取参考 batch_size 和设备/类型信息
+    batch_size = H_c_target.shape[0]
+    if H_p_target.shape[0] != batch_size:
+         raise ValueError(f"批次大小不匹配。H_c_target 的批次大小为 {batch_size}, 但 H_p_target 的批次大小为 {H_p_target.shape[0]}。")
+
+    # 初始化源域损失总和
+    loss_s_sum = torch.tensor(0.0, device=H_c_target.device, dtype=H_c_target.dtype)
+
+    # --- 计算目标域项: || H_ct^T H_pt ||_F^2 ---
+    H_ct_T = H_c_target.t()                        # 转置: (N, Dct) -> (Dct, N)
+    product_t = torch.matmul(H_ct_T, H_p_target)  # 矩阵乘法: (Dct, N) @ (N, Dpt) -> (Dct, Dpt)
+    loss_t = torch.sum(product_t ** 2)            # 平方 Frobenius 范数
+
+    # --- 计算源域项总和: Sum_i || H_csi^T H_psi ||_F^2 ---
+    # 使用 zip 同时迭代两个源域列表
+    for i, (H_cs, H_ps) in enumerate(zip(H_c_source_list, H_p_source_list)):
+        # 检查每个源域特征对
+        if H_cs.ndim != 2 or H_ps.ndim != 2:
+            raise ValueError(f"源域列表索引 {i} 处的张量对必须都是二维的。")
+        if H_cs.shape[0] != batch_size or H_ps.shape[0] != batch_size:
+            raise ValueError(
+                f"源域列表索引 {i} 处的批次大小不匹配。 "
+                f"期望 {batch_size}, 得到 H_cs={H_cs.shape[0]}, H_ps={H_ps.shape[0]}。"
+            )
+
+        # 计算第 i 个源域项: || H_csi^T H_psi ||_F^2
+        H_cs_T = H_cs.t()                         # 转置: (N, Dcsi) -> (Dcsi, N)
+        product_s = torch.matmul(H_cs_T, H_ps)   # 矩阵乘法: (Dcsi, N) @ (N, Dpsi) -> (Dcsi, Dpsi)
+        loss_s_term = torch.sum(product_s ** 2)  # 平方 Frobenius 范数
+
+        # 累加源域损失
+        loss_s_sum = loss_s_sum + loss_s_term
+
+    # --- 总损失 ---
+    total_loss = loss_t + loss_s_sum
+
+    # --- 可选的归一化 ---
+    if normalize and batch_size > 0:
+        total_loss = total_loss / batch_size
+
+    return total_loss
+
 
 if __name__ == '__main__':
     # start_time = time.time()
     # time.sleep(5)
     # print(f"Time consumed: {time.time() - start_time} seconds")
-    ## 测试orthogonality_loss 函数
-    Hc = torch.ones((32, 64))
-    Hps = torch.zeros((32, 64))
-    Hpt = torch.zeros((32, 64))
-    loss = orthogonality_loss(Hc, Hps, Hpt)
-    print(loss)
+    # --- 示例用法 ---
+    # 假设:
+    N = 64
+    Dcs1 = 32 # Source 1 common features dim
+
+    # 假设这些张量来自于你的模型不同的分支或不同的输入
+    H_cs1_tensor = torch.ones((N, Dcs1), requires_grad=True)
+    H_ps1_tensor = torch.zeros((N, Dcs1), requires_grad=True)
+    H_cs2_tensor = torch.ones((N, Dcs1), requires_grad=True)
+    H_ps2_tensor = torch.zeros((N, Dcs1), requires_grad=True)
+    H_ct_tensor = torch.ones((N, Dcs1), requires_grad=True)
+    H_pt_tensor = torch.zeros((N, Dcs1), requires_grad=True)
+
+    # 将源域特征放入列表
+    source_common_features = [H_cs1_tensor, H_cs2_tensor]
+    source_private_features = [H_ps1_tensor, H_ps2_tensor]
+
+    # 使用新函数计算损失
+    loss = orthogonality_loss_multi(
+        source_common_features, source_private_features,
+        H_ct_tensor, H_pt_tensor,
+        normalize=True
+    )
+    print(f"Full Separate Orthogonality Loss: {loss.item()}")
+
+    # 可以进行反向传播
+    # loss.backward()

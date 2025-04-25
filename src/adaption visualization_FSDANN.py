@@ -18,6 +18,7 @@ from src.utils import setup_seed
 
 device = "cpu"
 import matplotlib
+
 ## plt显示中文
 # 允许中文和负号
 matplotlib.rcParams['font.sans-serif'] = ['SimHei']
@@ -70,13 +71,13 @@ if __name__ == '__main__':
         (pred_src, domain_pred_src, src_domain_class, _, src_private_pred, _,
          shared_feature, src_private_feature, _) = model(x_src, y_src_prev, 0.5)
         # cat
-        src_features = torch.cat((src_features, shared_feature), 0)
+        src_features = torch.cat((src_features, src_private_feature), 0)
     for i, (x_tar, y_tar_prev, y_tar_true) in test_data_trg:
         x_tar, y_tar_prev, y_tar_true = x_tar.to(device), y_tar_prev.to(device), y_tar_true.to(device)
         (pred_tar, domain_pred_tar, _, tar_domain_class, _, tar_private_pred,
          shared_feature, _, tar_private_feature) = model(x_tar, y_tar_prev, 0.5)
         # cat
-        tar_features = torch.cat((tar_features, shared_feature), 0)
+        tar_features = torch.cat((tar_features, tar_private_feature), 0)
 
     # hook.remove()
     # 提取源域和目标域的特征
@@ -108,10 +109,10 @@ if __name__ == '__main__':
 
     # 绘制源域和目标域的特征分布图
     plt.figure(figsize=(8, 6), dpi=480)
-    plt.scatter(source_features_2d[:, 0], source_features_2d[:, 1], label='源域', alpha=0.8, s=10)
-    plt.scatter(target_features_2d[:, 0], target_features_2d[:, 1], label='目标域', alpha=0.8, s=10)
+    plt.scatter(source_features_2d[:, 0], source_features_2d[:, 1], label='源域', alpha=0.8, s=12)
+    plt.scatter(target_features_2d[:, 0], target_features_2d[:, 1], label='目标域', alpha=0.8, s=12)
     # plt.title('Feature Distribution Before Domain Adaptation')
-    plt.legend()
+    plt.legend(fontsize=18)
     # --- 新增代码：移除边框 (Spines) ---
     # 1. 获取当前的坐标轴对象 (Axes)
     ax = plt.gca()
