@@ -146,13 +146,85 @@ def get_weights_tensor(losses):
     return exp_losses / sum_exp
 
 
+def orthogonality_loss(H_c: torch.Tensor, H_ps: torch.Tensor, H_pt: torch.Tensor,
+                       normalize: bool = False) -> torch.Tensor:
+    """
+    计算正交损失 L_diff = || H_c^T H_ps ||_F^2 + || H_c^T H_pt ||_F^2
+
+    Args:
+        H_c (torch.Tensor): 公共特征张量, 形状例如 (N, D_c).
+        H_ps (torch.Tensor): 源域私有特征张量, 形状例如 (N, D_ps).
+        H_pt (torch.Tensor): 目标域私有特征张量, 形状例如 (N, D_pt).
+        normalize (bool, optional): 是否根据批次大小 N 对损失进行归一化. 默认为 False.
+
+    Returns:
+        torch.Tensor: 计算得到的标量损失值.
+
+    Raises:
+        ValueError: 如果输入张量不是二维或批次大小不匹配.
+    """
+    # --- 输入检查 ---
+    if not (H_c.ndim == 2 and H_ps.ndim == 2 and H_pt.ndim == 2):
+        raise ValueError("输入张量 H_c, H_ps, H_pt 都必须是二维的 (例如, batch_size x feature_dim)")
+
+    batch_size = H_c.shape[0]
+    if H_ps.shape[0] != batch_size or H_pt.shape[0] != batch_size:
+        raise ValueError("所有输入张量的第一个维度 (batch_size) 必须相同。")
+
+    # --- 计算第一项: || H_c^T H_ps ||_F^2 ---
+    # 转置 H_c: (N, Dc) -> (Dc, N)
+    H_c_T = H_c.t()
+    # 矩阵乘法: (Dc, N) @ (N, Dps) -> (Dc, Dps)
+    product_s = torch.matmul(H_c_T, H_ps)
+    # 计算平方 Frobenius 范数 (所有元素的平方和)
+    loss_s = torch.sum(product_s ** 2)
+
+    # --- 计算第二项: || H_c^T H_pt ||_F^2 ---
+    # 可以复用 H_c_T
+    # 矩阵乘法: (Dc, N) @ (N, Dpt) -> (Dc, Dpt)
+    product_t = torch.matmul(H_c_T, H_pt)
+    # 计算平方 Frobenius 范数
+    loss_t = torch.sum(product_t ** 2)
+
+    # --- 总损失 ---
+    total_loss = loss_s + loss_t
+
+    # --- 可选的归一化 ---
+    # 有时为了让损失值不受 batch size 影响，会进行归一化
+    if normalize and batch_size > 0:
+        # 除以 batch size 是一个常见的选择
+        total_loss = total_loss / batch_size
+        # 或者可以除以乘积矩阵的元素总数，但除以 N 更常见
+        # num_elements_s = product_s.numel()
+        # num_elements_t = product_t.numel()
+        # total_loss = loss_s / num_elements_s + loss_t / num_elements_t
+
+    return total_loss
+
+
+# --- 如何在 PyTorch 训练循环中使用 ---
+# 假设你从模型的不同部分获取了 H_c, H_ps, H_pt 张量
+# H_c_features = model.common_encoder(input_data)
+# H_ps_features = model.source_private_encoder(source_data)
+# H_pt_features = model.target_private_encoder(target_data) # 或者来自同一个模型的不同分支
+
+# 计算损失
+# orth_loss = orthogonality_loss(H_c_features, H_ps_features, H_pt_features, normalize=True)
+
+# 将这个损失添加到你的总损失中 (可能需要一个权重系数)
+# total_training_loss = main_task_loss + lambda_orth * orth_loss
+
+# 执行反向传播
+# total_training_loss.backward()
+# optimizer.step()
+
 if __name__ == '__main__':
     # start_time = time.time()
     # time.sleep(5)
     # print(f"Time consumed: {time.time() - start_time} seconds")
-    arr = [2, 5, 1, 12, 1]
-    arr = np.array(arr)
-    weights = get_weights(arr)
-    (w1, w2) = get_weights_tensor([1, 2])
-    print(w1)
-    print(weights)
+    ## 测试orthogonality_loss 函数
+    Hc = torch.ones((32, 64))
+    Hps = torch.zeros((32, 64))
+    Hpt = torch.zeros((32, 64))
+    loss = orthogonality_loss(Hc, Hps, Hpt)
+    print(loss)
