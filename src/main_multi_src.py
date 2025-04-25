@@ -95,13 +95,13 @@ def train(args):
                 feature_src1, pred_src1, domain_pred_src1 = model(x_src1, y_src1_prev, alpha)
                 feature_src2, pred_src2, domain_pred_src2 = model(x_src2, y_src2_prev, alpha)
                 feature_tar, pred_tar, domain_pred_tar = model(x_tar, y_tar_prev, alpha)
-                # l1 = mix_rbf_mmd2(feature_src1, feature_tar, [0.1, 0.5, 1.0])
-                # l2 = mix_rbf_mmd2(feature_src2, feature_tar, [0.1, 0.5, 1.0])
-                # (w1, w2) = get_weights_tensor([l1, l2])
-                # 对比实验CORAL
-                l1 = coral(feature_src1, feature_tar)
-                l2 = coral(feature_src2, feature_tar)
+                l1 = mix_rbf_mmd2(feature_src1, feature_tar, [0.1, 0.5, 1.0])
+                l2 = mix_rbf_mmd2(feature_src2, feature_tar, [0.1, 0.5, 1.0])
                 (w1, w2) = get_weights_tensor([l1, l2])
+                # 对比实验CORAL
+                # l1 = coral(feature_src1, feature_tar)
+                # l2 = coral(feature_src2, feature_tar)
+                # (w1, w2) = get_weights_tensor([l1, l2])
 
                 # 用0标记为源域，1标记为目标域
                 zero_tensor = torch.zeros(domain_pred_src1.shape[0]).long().to(device)
@@ -115,11 +115,11 @@ def train(args):
                 loss_pred_src2 = criterion_pred_src2(pred_src2, y_src2_true)
                 loss_pred_tar = criterion_pred_tar(pred_tar, y_tar_true)
 
-                # loss = -LAMBDA * (w1 * loss_dis_src1 + w2 * loss_dis_src2 + loss_dis_tar) + (
-                #         (1 - BETA) * (w1 * loss_pred_src1 + w2 * loss_pred_src2) + BETA * loss_pred_tar)
+                loss = -LAMBDA * (w1 * loss_dis_src1 + w2 * loss_dis_src2 + loss_dis_tar) + (
+                        (1 - BETA) * (w1 * loss_pred_src1 + w2 * loss_pred_src2) + BETA * loss_pred_tar)
                 ## 对比实验，去掉权重
-                loss = -LAMBDA * (loss_dis_src1 + loss_dis_src2 + loss_dis_tar) + (
-                        (1 - BETA) * (loss_pred_src1 + loss_pred_src2) + BETA * loss_pred_tar)
+                # loss = -LAMBDA * (loss_dis_src1 + loss_dis_src2 + loss_dis_tar) + (
+                #         (1 - BETA) * (loss_pred_src1 + loss_pred_src2) + BETA * loss_pred_tar)
 
                 loss.backward()
                 model.feature_extractor.encoder_optimizer.step()
