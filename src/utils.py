@@ -147,8 +147,8 @@ def get_weights_tensor(losses):
 
 
 def orthogonality_loss(H_c_source: torch.Tensor, H_p_source: torch.Tensor,
-                                H_c_target: torch.Tensor, H_p_target: torch.Tensor,
-                                normalize: bool = False) -> torch.Tensor:
+                       H_c_target: torch.Tensor, H_p_target: torch.Tensor,
+                       normalize: bool = False) -> torch.Tensor:
     """
     根据公式计算正交损失:
     L_diff = || H_cs^T H_ps ||_F^2 + || H_ct^T H_pt ||_F^2
@@ -207,11 +207,11 @@ def orthogonality_loss(H_c_source: torch.Tensor, H_p_source: torch.Tensor,
 
 
 def orthogonality_loss_multi(
-    H_c_source_list: List[torch.Tensor],
-    H_p_source_list: List[torch.Tensor],
-    H_c_target: torch.Tensor,
-    H_p_target: torch.Tensor,
-    normalize: bool = False
+        H_c_source_list: List[torch.Tensor],
+        H_p_source_list: List[torch.Tensor],
+        H_c_target: torch.Tensor,
+        H_p_target: torch.Tensor,
+        normalize: bool = False
 ) -> torch.Tensor:
     """
     根据公式计算正交损失:
@@ -249,15 +249,16 @@ def orthogonality_loss_multi(
     # 使用目标域张量获取参考 batch_size 和设备/类型信息
     batch_size = H_c_target.shape[0]
     if H_p_target.shape[0] != batch_size:
-         raise ValueError(f"批次大小不匹配。H_c_target 的批次大小为 {batch_size}, 但 H_p_target 的批次大小为 {H_p_target.shape[0]}。")
+        raise ValueError(
+            f"批次大小不匹配。H_c_target 的批次大小为 {batch_size}, 但 H_p_target 的批次大小为 {H_p_target.shape[0]}。")
 
     # 初始化源域损失总和
-    loss_s_sum = torch.tensor(0.0, device=H_c_target.device, dtype=H_c_target.dtype)
+    loss_s_sum = torch.tensor(0.0, device=H_c_target.device, dtype=H_c_target.dtype) / len(H_c_source_list)
 
     # --- 计算目标域项: || H_ct^T H_pt ||_F^2 ---
-    H_ct_T = H_c_target.t()                        # 转置: (N, Dct) -> (Dct, N)
+    H_ct_T = H_c_target.t()  # 转置: (N, Dct) -> (Dct, N)
     product_t = torch.matmul(H_ct_T, H_p_target)  # 矩阵乘法: (Dct, N) @ (N, Dpt) -> (Dct, Dpt)
-    loss_t = torch.sum(product_t ** 2)            # 平方 Frobenius 范数
+    loss_t = torch.sum(product_t ** 2)  # 平方 Frobenius 范数
 
     # --- 计算源域项总和: Sum_i || H_csi^T H_psi ||_F^2 ---
     # 使用 zip 同时迭代两个源域列表
@@ -272,8 +273,8 @@ def orthogonality_loss_multi(
             )
 
         # 计算第 i 个源域项: || H_csi^T H_psi ||_F^2
-        H_cs_T = H_cs.t()                         # 转置: (N, Dcsi) -> (Dcsi, N)
-        product_s = torch.matmul(H_cs_T, H_ps)   # 矩阵乘法: (Dcsi, N) @ (N, Dpsi) -> (Dcsi, Dpsi)
+        H_cs_T = H_cs.t()  # 转置: (N, Dcsi) -> (Dcsi, N)
+        product_s = torch.matmul(H_cs_T, H_ps)  # 矩阵乘法: (Dcsi, N) @ (N, Dpsi) -> (Dcsi, Dpsi)
         loss_s_term = torch.sum(product_s ** 2)  # 平方 Frobenius 范数
 
         # 累加源域损失
@@ -296,7 +297,7 @@ if __name__ == '__main__':
     # --- 示例用法 ---
     # 假设:
     N = 64
-    Dcs1 = 32 # Source 1 common features dim
+    Dcs1 = 32  # Source 1 common features dim
 
     # 假设这些张量来自于你的模型不同的分支或不同的输入
     H_cs1_tensor = torch.ones((N, Dcs1), requires_grad=True)

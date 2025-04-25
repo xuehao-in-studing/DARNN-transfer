@@ -19,7 +19,7 @@ def parse_args(custom_args:dict=None):
     parser.add_argument('--targetdomain', type=str, default="HZW", help='input batch size [128]')
 
     # Encoder / Decoder parameters setting
-    parser.add_argument('--nums_hidden', type=int, default=128,
+    parser.add_argument('--nums_hidden', type=int, default=32,
                         help='size of hidden states for the encoder m [16, 32, 64, 128]')
     parser.add_argument('--LAMBDA', type=float, default=0.4,
                         help='判别损失权重')
