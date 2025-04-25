@@ -33,7 +33,7 @@ def parse_args(custom_args:dict=None):
     parser.add_argument('--epochs', type=int, default=200, help='number of epochs to train [10, 200, 500]')
     parser.add_argument('--lr', type=float, default=4e-3,
                         help='learning rate [0.001] reduced by 0.1 after each 10000 iterations')
-    parser.add_argument('--seed', type=int, default=2025, help='random seed to use. Default=100')
+    parser.add_argument('--seed', type=int, default=2028, help='random seed to use. Default=100')
     parser.add_argument('--debug', type=bool, default=False, help='whether in debug mode or not')
 
     # Parse arguments
