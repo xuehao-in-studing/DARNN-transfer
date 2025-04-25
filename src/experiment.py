@@ -4,7 +4,7 @@ from src.arguments import parse_args
 
 if __name__ == '__main__':
     # from main import train
-    from main_multi_src import train
+    from main_FSDANN import train
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--targetdomain', required=True, help='Path to the data root')
