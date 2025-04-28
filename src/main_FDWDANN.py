@@ -152,9 +152,9 @@ def train(args):
                 src_domain_label = [one_tensor, two_tensor]
 
                 # 领域分类损失
-                loss_dis1 = criterion_dis_tar[0](domain_pred_tars[0], zero_tensor) + criterion_dis_src[0](
+                loss_dis1 = criterion_dis_src[0](domain_pred_tars[0], zero_tensor) + criterion_dis_src[0](
                     domain_pred_srcs[0], one_tensor)
-                loss_dis2 = criterion_dis_tar[1](domain_pred_tars[1], zero_tensor) + criterion_dis_src[1](
+                loss_dis2 = criterion_dis_src[1](domain_pred_tars[1], zero_tensor) + criterion_dis_src[1](
                     domain_pred_srcs[1], one_tensor)
                 loss_dis = sum(
                     w * loss
