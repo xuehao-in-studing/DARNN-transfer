@@ -60,15 +60,15 @@ class FDW_DANN(nn.Module):
                                             self.parallel)
 
         self.domain_discriminator1 = nn.Sequential(
-            nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 32),
-            nn.Linear(32, 2),
+            nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 2),
+            # nn.Linear(32, 2),
             # nn.ReLU(),
             # nn.LogSoftmax(dim=1)
         )
 
         self.domain_discriminator2 = nn.Sequential(
-            nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 32),
-            nn.Linear(32, 2),
+            nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 2),
+            # nn.Linear(32, 2),
             # nn.ReLU(),
             # nn.LogSoftmax(dim=1)
         )
