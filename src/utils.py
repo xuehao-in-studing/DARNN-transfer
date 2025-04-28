@@ -211,7 +211,7 @@ def orthogonality_loss_multi(
         H_p_source_list: List[torch.Tensor],
         H_c_target: torch.Tensor,
         H_p_target: torch.Tensor,
-        normalize: bool = False
+        normalize: bool = True
 ) -> torch.Tensor:
     """
     根据公式计算正交损失:
@@ -229,7 +229,7 @@ def orthogonality_loss_multi(
         H_c_target (torch.Tensor): *目标域* 公共特征张量, 形状例如 (N, D_ct)。
         H_p_target (torch.Tensor): *目标域* 私有特征张量, 形状例如 (N, D_pt)。
                                      第一个维度 N 必须与 H_c_source_list 中的张量相同。
-        normalize (bool, optional): 是否根据批次大小 N 对总损失进行归一化. 默认为 False.
+        normalize (bool, optional): 是否根据批次大小 N 对总损失进行归一化. 默认为 True.
 
     Returns:
         torch.Tensor: 计算得到的标量损失值.
@@ -281,7 +281,7 @@ def orthogonality_loss_multi(
         loss_s_sum = loss_s_sum + loss_s_term
 
     # --- 总损失 ---
-    total_loss = loss_t + loss_s_sum
+    total_loss = loss_t + loss_s_sum / len(H_c_source_list)
 
     # --- 可选的归一化 ---
     if normalize and batch_size > 0:

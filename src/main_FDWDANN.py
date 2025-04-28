@@ -14,7 +14,7 @@ from src.utils import setup_seed, accuracy, RMSE, get_weights, get_weights_tenso
 多源域向单源域迁移
 """
 
-num_src = 2
+NUM_SRC = 2
 
 
 def train(args):
@@ -45,17 +45,18 @@ def train(args):
                      args.batchsize, args.lr, args.epochs,
                      model_path=f'../models/{args.targetdomain}_{args.object_col}.pt')
     model = model.to(device)
-    criterion_dis_src = [nn.CrossEntropyLoss()] * num_src
-    criterion_dis_tar = nn.CrossEntropyLoss()
-    criterion_cls_src = [nn.CrossEntropyLoss()] * num_src
+    criterion_dis_src = [nn.CrossEntropyLoss()] * NUM_SRC
+    criterion_dis_tar = [nn.CrossEntropyLoss()] * NUM_SRC
+    criterion_cls_src = [nn.CrossEntropyLoss()] * NUM_SRC
     criterion_cls_tar = nn.CrossEntropyLoss()
-    criterion_pred_src = [nn.MSELoss()] * num_src
+    criterion_pred_src = [nn.MSELoss()] * NUM_SRC
     criterion_pred_tar = nn.MSELoss()
     criterion_pred_tar_private = nn.MSELoss()
 
     LAMBDA = args.LAMBDA
     BETA = args.BETA
     ALPHA = 0.4
+    GAMMA = 0.6
     iter_per_epoch = len(test_data_trg)
     list_src1, list_src2, list_tar = list(enumerate(data_src1)), list(enumerate(data_src2)), list(enumerate(data_tar))
     list_test_tar = list(enumerate(test_data_trg))
@@ -102,22 +103,24 @@ def train(args):
                 model.shared_regressor_optimizer.zero_grad()
                 model.private_regressor_optimizer.zero_grad()
                 model.domain_classifier_optimizer.zero_grad()
-                model.domain_discriminator_optimizer.zero_grad()
+                model.domain_discriminator1_optimizer.zero_grad()
+                model.domain_discriminator2_optimizer.zero_grad()
 
-                (val_pred_src1, domain_pred_src1, src1_domain_class, _, _, _, src1_shared_feature, src1_private_feature,
-                 _, _) = model(x_src1, y_src1_prev, alpha)
+                (val_pred_src1, domain_pred_src1, _, src1_domain_class, _, _, _, src1_shared_feature,
+                 src1_private_feature, _, _) = model(x_src1, y_src1_prev, alpha)
 
-                (val_pred_src2, domain_pred_src2, _, src2_domain_class, _, _, src2_shared_feature, _,
+                (val_pred_src2, _, domain_pred_src2, _, src2_domain_class, _, _, src2_shared_feature, _,
                  src2_private_feature, _) = model(x_src2, y_src2_prev, alpha)
 
-                (val_pred_tar, domain_pred_tar, _, _, tar_domain_class, tar_private_pred, tar_shared_feature, _, _,
-                 tar_private_feature) = model(x_tar, y_tar_prev, alpha)
+                (val_pred_tar, domain_pred_tar1, domain_pred_tar2, _, _, tar_domain_class, tar_private_pred,
+                 tar_shared_feature, _, _, tar_private_feature) = model(x_tar, y_tar_prev, alpha)
 
                 val_pred_src = [val_pred_src1, val_pred_src2]
-                domain_pred_src = [domain_pred_src1, domain_pred_src2]
+                domain_pred_srcs = [domain_pred_src1, domain_pred_src2]
                 domain_pred_src_class = [src1_domain_class, src2_domain_class]
                 src_shared_features = [src1_shared_feature, src2_shared_feature]
                 src_private_features = [src1_private_feature, src2_private_feature]
+                domain_pred_tars = [domain_pred_tar1, domain_pred_tar2]
 
                 l1 = mix_rbf_mmd2(src1_shared_feature, tar_shared_feature, [0.1, 0.5, 1.0])
                 l2 = mix_rbf_mmd2(src2_shared_feature, tar_shared_feature, [0.1, 0.5, 1.0])
@@ -128,38 +131,47 @@ def train(args):
                 # l2 = coral(feature_src2, feature_tar)
                 # (w1, w2) = get_weights_tensor([l1, l2])
 
-                # 用0标记为源域，1标记为目标域
+                # 正交损失
+                loss_diff = orthogonality_loss_multi(src_shared_features, src_private_features,
+                                                     tar_shared_feature, tar_private_feature)
+                # 预测损失
+                loss_pred_src = sum(
+                    w * crit(pred, label)
+                    for crit, pred, label, w in
+                    zip(criterion_pred_src, val_pred_src, [y_src1_true, y_src2_true], weight_mmd)
+                )
+                loss_pred_tar = criterion_pred_tar(val_pred_tar, y_tar_true)
+                loss_pred_tar_private = criterion_pred_tar(tar_private_pred, y_tar_true)
+                loss_pred = loss_pred_src / NUM_SRC + loss_pred_tar + loss_pred_tar_private
+
+                # 用0标记为目标域，1标记为源域1，2标记为源域2
                 zero_tensor = torch.zeros(domain_pred_src1.shape[0]).long().to(device)
                 # 创建一个形状为 (batch_size, 1) 的全一张量
                 one_tensor = torch.ones(domain_pred_src1.shape[0]).long().to(device)
                 two_tensor = torch.ones(domain_pred_src1.shape[0]).long().to(device) * 2
                 src_domain_label = [one_tensor, two_tensor]
 
-
-                loss_dis_tar = criterion_dis_tar(domain_pred_tar, zero_tensor)
-
-                loss_pred_tar = criterion_pred_tar(val_pred_tar, y_tar_true)
-                loss_pred_tar_private = criterion_pred_tar(tar_private_pred, y_tar_true)
-                loss_dis_src = sum(
-                    w* crit(pred, label)
-                    for crit, pred, label, w in zip(criterion_dis_src, domain_pred_src, src_domain_label, weight_mmd)
+                # 领域分类损失
+                loss_dis1 = criterion_dis_tar[0](domain_pred_tars[0], zero_tensor) + criterion_dis_src[0](
+                    domain_pred_srcs[0], one_tensor)
+                loss_dis2 = criterion_dis_tar[1](domain_pred_tars[1], zero_tensor) + criterion_dis_src[1](
+                    domain_pred_srcs[1], one_tensor)
+                loss_dis = sum(
+                    w * loss
+                    for loss, w in
+                    zip([loss_dis1, loss_dis2], weight_mmd)
                 )
-                loss_pred_src = sum(
-                    w * crit(pred, label)
-                    for crit, pred, label, w in
-                    zip(criterion_pred_src, val_pred_src, [y_src1_true, y_src2_true], weight_mmd)
-                )
+
                 loss_cls_src = sum(
                     crit(pred, label)
                     for crit, pred, label in
                     zip(criterion_cls_src, domain_pred_src_class, src_domain_label)
                 )
                 loss_cls_tar = criterion_cls_tar(tar_domain_class, zero_tensor)
+                loss_cls = loss_cls_src / NUM_SRC + loss_cls_tar
 
-                loss = loss_pred_src/num_src + loss_pred_tar + loss_pred_tar_private
-                - LAMBDA * (loss_dis_src/num_src + loss_dis_tar)
-                + ALPHA * (loss_cls_src/num_src + loss_cls_tar) + BETA * orthogonality_loss_multi(
-                    src_shared_features, src_private_features, tar_shared_feature, tar_private_feature)
+                loss_mmd = mix_rbf_mmd2(src1_shared_feature,src2_shared_feature, [0.1, 0.5, 1.0])
+                loss = loss_pred - LAMBDA * loss_dis + ALPHA * loss_cls + GAMMA * loss_mmd + BETA * loss_diff
 
                 ## 对比实验，去掉权重
                 # loss = -LAMBDA * (loss_dis_src1 + loss_dis_src2 + loss_dis_tar) + (
@@ -177,7 +189,8 @@ def train(args):
                 model.shared_regressor_optimizer.step()
                 model.private_regressor_optimizer.step()
                 model.domain_classifier_optimizer.step()
-                model.domain_discriminator_optimizer.step()
+                model.domain_discriminator1_optimizer.step()
+                model.domain_discriminator2_optimizer.step()
 
                 train_loss += loss.item()
                 train_acc += accuracy(y_tar_true, (val_pred_tar + tar_private_pred) / 2.0)
@@ -192,8 +205,8 @@ def train(args):
             with torch.no_grad():
                 for i, (X, y_prev, y_true) in enumerate(test_data_trg):
                     X, y_prev, y_true = X.to(device), y_prev.to(device), y_true.to(device)
-                    (val_pred_tar, domain_pred_tar, _, _, tar_domain_class, tar_private_pred, tar_shared_feature, _, _,
-                     tar_private_feature) = model(X, y_prev, alpha)
+                    (val_pred_tar, _, _, _, _, tar_domain_class, tar_private_pred,
+                     tar_shared_feature, _, _, tar_private_feature) = model(X, y_prev, alpha)
                     loss_pred_tar = (criterion_pred_tar(val_pred_tar, y_true) +
                                      criterion_pred_tar_private(tar_private_pred, y_true)) / 2.0
                     loss = loss_pred_tar
