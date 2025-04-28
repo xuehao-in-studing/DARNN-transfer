@@ -46,7 +46,8 @@ def train(args):
                      model_path=f'../models/{args.targetdomain}_{args.object_col}.pt')
     model = model.to(device)
     criterion_dis_src = [nn.CrossEntropyLoss()] * NUM_SRC
-    criterion_dis_tar = [nn.CrossEntropyLoss()] * NUM_SRC
+    # criterion_dis_tar = [nn.CrossEntropyLoss()] * NUM_SRC
+    criterion_dis_tar = nn.CrossEntropyLoss()
     criterion_cls_src = [nn.CrossEntropyLoss()] * NUM_SRC
     criterion_cls_tar = nn.CrossEntropyLoss()
     criterion_pred_src = [nn.MSELoss()] * NUM_SRC
@@ -109,10 +110,10 @@ def train(args):
                 (val_pred_src1, domain_pred_src1, _, src1_domain_class, _, _, _, src1_shared_feature,
                  src1_private_feature, _, _) = model(x_src1, y_src1_prev, alpha)
 
-                (val_pred_src2, _, domain_pred_src2, _, src2_domain_class, _, _, src2_shared_feature, _,
+                (val_pred_src2, domain_pred_src2, _, _, src2_domain_class, _, _, src2_shared_feature, _,
                  src2_private_feature, _) = model(x_src2, y_src2_prev, alpha)
 
-                (val_pred_tar, domain_pred_tar1, domain_pred_tar2, _, _, tar_domain_class, tar_private_pred,
+                (val_pred_tar, domain_pred_tar, _, _, _, tar_domain_class, tar_private_pred,
                  tar_shared_feature, _, _, tar_private_feature) = model(x_tar, y_tar_prev, alpha)
 
                 val_pred_src = [val_pred_src1, val_pred_src2]
@@ -120,7 +121,7 @@ def train(args):
                 domain_pred_src_class = [src1_domain_class, src2_domain_class]
                 src_shared_features = [src1_shared_feature, src2_shared_feature]
                 src_private_features = [src1_private_feature, src2_private_feature]
-                domain_pred_tars = [domain_pred_tar1, domain_pred_tar2]
+                # domain_pred_tars = [domain_pred_tar1, domain_pred_tar2]
 
                 l1 = mix_rbf_mmd2(src1_shared_feature, tar_shared_feature, [0.1, 0.5, 1.0])
                 l2 = mix_rbf_mmd2(src2_shared_feature, tar_shared_feature, [0.1, 0.5, 1.0])
@@ -152,15 +153,21 @@ def train(args):
                 src_domain_label = [one_tensor, two_tensor]
 
                 # 领域分类损失
-                loss_dis1 = criterion_dis_src[0](domain_pred_tars[0], zero_tensor) + criterion_dis_src[0](
-                    domain_pred_srcs[0], one_tensor)
-                loss_dis2 = criterion_dis_src[1](domain_pred_tars[1], zero_tensor) + criterion_dis_src[1](
-                    domain_pred_srcs[1], one_tensor)
-                loss_dis = sum(
-                    w * loss
-                    for loss, w in
-                    zip([loss_dis1, loss_dis2], weight_mmd)
+                # loss_dis1 = criterion_dis_src[0](domain_pred_tars[0], zero_tensor) + criterion_dis_src[0](
+                #     domain_pred_srcs[0], one_tensor)
+                # loss_dis2 = criterion_dis_src[1](domain_pred_tars[1], zero_tensor) + criterion_dis_src[1](
+                #     domain_pred_srcs[1], one_tensor)
+                # loss_dis = sum(
+                #     w * loss
+                #     for loss, w in
+                #     zip([loss_dis1, loss_dis2], weight_mmd)
+                # )
+
+                loss_dis_src = sum(
+                    w * crit(pred, label)
+                    for crit, pred, label, w in zip(criterion_dis_src, domain_pred_srcs, src_domain_label, weight_mmd)
                 )
+                loss_dis = loss_dis_src / NUM_SRC + criterion_dis_tar(domain_pred_tar, zero_tensor)
 
                 loss_cls_src = sum(
                     crit(pred, label)
