@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from torch import nn
 
+from src.FDWDANN import FDW_DANN
 from src.FSDANN import FS_DANN
 from src.arguments import parse_args
 from src.load_data import load_data
@@ -32,18 +33,16 @@ def get_model(args):
     print("==> Load dataset ...")
     T = args.ntimestep
     # data
-    data_src1, src_X_scaler, src_Y_scaler = load_data("../data",
+    data_src, src_X_scaler, src_Y_scaler = load_data("../data",
                                                      "ZJ", args.batchsize, args.object_col, T)
-    data_src2, src2_X_scaler, src2_Y_scaler = load_data("../data",
-                                                        "TSJY", args.batchsize, args.object_col, T)
     data_tar, tar_X_scaler, tar_Y_scaler = load_data("../data",
                                                      f"{args.targetdomain}/train", args.batchsize, args.object_col, T)
     test_data_trg, test_tar_X_scaler, test_tar_Y_scaler = load_data("../data",
                                                                     f"{args.targetdomain}/test", args.batchsize,
                                                                     args.object_col, T)
 
-    X = next(iter(data_src1))[0]
-    y_prev = next(iter(data_src1))[1]
+    X = next(iter(data_src))[0]
+    y_prev = next(iter(data_src))[1]
 
     print("==> Initialize DALSTM model ...")
     model = FS_DANN(X, y_prev, args.ntimestep, args.nums_hidden,
@@ -51,8 +50,8 @@ def get_model(args):
     model = model.to(device)
     model_path = f'../models/{args.targetdomain}_{args.object_col}.pt'
     model.load_state_dict(torch.load(model_path))
-    list_src1, list_src2, test_data_trg = list(enumerate(data_src1)), list(enumerate(data_src2)), list(enumerate(test_data_trg))
-    return model, list_src1, list_src2, test_data_trg
+    list_src, test_data_trg = list(enumerate(data_src)), list(enumerate(test_data_trg))
+    return model, list_src, test_data_trg
 
 
 def hook_fn(model, input, output):
@@ -63,35 +62,27 @@ def hook_fn(model, input, output):
 
 if __name__ == '__main__':
     args = parse_args()
-    model, list_src1, list_src2, test_data_trg = get_model(args)
+    model, list_src, test_data_trg = get_model(args)
     # 注册hook
     # hook = model.feature_extractor.register_forward_hook(hook_fn)
-    src1_features = torch.Tensor()
-    src2_features = torch.Tensor()
+    src_features = torch.Tensor()
     tar_features = torch.Tensor()
-    for i, (x_src, y_src_prev, y_src_true) in list_src1:
+    for i, (x_src, y_src_prev, y_src_true) in list_src:
         x_src, y_src_prev, y_src_true = x_src.to(device), y_src_prev.to(device), y_src_true.to(device)
-        (pred_src, domain_pred_src, src1_domain_class, _, _, src_private_pred,
-         shared_feature, src1_private_feature, _, _) = model(x_src, y_src_prev, 0.5)
+        (pred_src, domain_pred_src, src_domain_class, _, src_private_pred, _,
+         shared_feature, src_private_feature, _) = model(x_src, y_src_prev, 0.5)
         # cat
-        src1_features = torch.cat((src1_features, src1_private_feature), 0)
-    for i, (x_src, y_src_prev, y_src_true) in list_src2:
-        x_src, y_src_prev, y_src_true = x_src.to(device), y_src_prev.to(device), y_src_true.to(device)
-        (pred_src, domain_pred_src, _, src2_domain_class, _, src_private_pred,
-         shared_feature, _, src2_private_feature, _) = model(x_src, y_src_prev, 0.5)
-        # cat
-        src2_features = torch.cat((src2_features, src2_private_feature), 0)
+        src_features = torch.cat((src_features, src_private_feature), 0)
     for i, (x_tar, y_tar_prev, y_tar_true) in test_data_trg:
         x_tar, y_tar_prev, y_tar_true = x_tar.to(device), y_tar_prev.to(device), y_tar_true.to(device)
-        (pred_tar, domain_pred_tar, _, _, tar_domain_class, tar_private_pred,
+        (pred_tar, domain_pred_tar, _, tar_domain_class, _, tar_private_pred,
          shared_feature, _, tar_private_feature) = model(x_tar, y_tar_prev, 0.5)
         # cat
         tar_features = torch.cat((tar_features, tar_private_feature), 0)
 
     # hook.remove()
     # 提取源域和目标域的特征
-    src1_features = src1_features.detach().squeeze().numpy()
-    src2_features = src2_features.detach().squeeze().numpy()
+    src_features = src_features.detach().squeeze().numpy()
     tar_features = tar_features.detach().squeeze().numpy()
     # # 使用T-SNE降维到2D
     from sklearn.decomposition import PCA
@@ -99,7 +90,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     tsne = TSNE(n_components=2)
-    source_features_2d = tsne.fit_transform(src1_features)
+    source_features_2d = tsne.fit_transform(src_features)
     target_features_2d = tsne.fit_transform(tar_features)
 
     len_src = int(source_features_2d.shape[0] / target_features_2d.shape[0])
@@ -110,7 +101,7 @@ if __name__ == '__main__':
     kl = 0
 
     for i in range(len_src - 1):
-        source_feature = src1_features[i * tar_features.shape[0]:(i + 1) * tar_features.shape[0], :]
+        source_feature = src_features[i * tar_features.shape[0]:(i + 1) * tar_features.shape[0], :]
         mmd += linear_mmd2(torch.FloatTensor(source_feature), torch.FloatTensor(tar_features))
         kl += kl_loss(torch.log_softmax(torch.FloatTensor(source_feature), dim=1),
                       torch.softmax(torch.FloatTensor(tar_features), dim=1))
