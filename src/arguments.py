@@ -23,7 +23,7 @@ def parse_args(custom_args:dict=None):
                         help='size of hidden states for the encoder m [16, 32, 64, 128]')
     parser.add_argument('--LAMBDA', type=float, default=0.4,
                         help='判别损失权重')
-    parser.add_argument('--BETA', type=float, default=0.4,
+    parser.add_argument('--BETA', type=float, default=0.2,
                         help='目标域回归器权重')
     # parser.add_argument('--nhidden_decoder', type=int, default=16,
     #                     help='size of hidden states for the decoder p [64, 128]')

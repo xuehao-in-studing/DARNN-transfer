@@ -55,8 +55,8 @@ def train(args):
 
     LAMBDA = args.LAMBDA
     BETA = args.BETA
-    ALPHA = 0.4
-    GAMMA = 0.6
+    ALPHA = 0.2
+    GAMMA = 0.4
     iter_per_epoch = len(test_data_trg)
     list_src1, list_src2, list_tar = list(enumerate(data_src1)), list(enumerate(data_src2)), list(enumerate(data_tar))
     list_test_tar = list(enumerate(test_data_trg))
@@ -141,7 +141,7 @@ def train(args):
                     zip(criterion_pred_src, val_pred_src, [y_src1_true, y_src2_true], weight_mmd)
                 )
                 loss_pred_tar = criterion_pred_tar(val_pred_tar, y_tar_true)
-                loss_pred_tar_private = criterion_pred_tar(tar_private_pred, y_tar_true)
+                loss_pred_tar_private = criterion_pred_tar_private(tar_private_pred, y_tar_true)
                 loss_pred = loss_pred_src / NUM_SRC + loss_pred_tar + loss_pred_tar_private
 
                 # 用0标记为目标域，1标记为源域1，2标记为源域2
