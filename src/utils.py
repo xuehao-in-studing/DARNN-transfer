@@ -211,7 +211,7 @@ def orthogonality_loss_multi(
         H_p_source_list: List[torch.Tensor],
         H_c_target: torch.Tensor,
         H_p_target: torch.Tensor,
-        normalize: bool = False
+        normalize: bool = True
 ) -> torch.Tensor:
     """
     根据公式计算正交损失:

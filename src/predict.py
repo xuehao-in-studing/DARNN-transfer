@@ -93,8 +93,11 @@ def predict(args):
     # plot
     y_preds = test_tar_Y_scaler.inverse_transform(y_preds)
     y_true = test_tar_Y_scaler.inverse_transform(y_true)
+    x_min = 200
+    x_max = len(y_preds) + 200 - 1  # range(start, stop) 生成到 stop-1 结束
 
     fig = plt.figure(figsize=(14, 6), dpi=720)
+    plt.xlim(x_min, x_max)
     plt.plot(range(200, len(y_preds) + 200), y_preds, label='预测值')
     plt.plot(range(200, len(y_preds) + 200), y_true, label="真实值")
     plt.xticks(fontsize=tick_size)  # x轴刻度字体
