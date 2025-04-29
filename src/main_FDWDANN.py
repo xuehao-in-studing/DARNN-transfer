@@ -156,10 +156,12 @@ def train(args):
                 )
                 loss_cls_tar = criterion_cls_tar(tar_domain_class, zero_tensor)
 
+                loss_mmd = mix_rbf_mmd2(src1_shared_feature, src2_shared_feature, [0.1, 0.5, 1.0])
+
                 loss = loss_pred_src/num_src + loss_pred_tar + loss_pred_tar_private
                 - LAMBDA * (loss_dis_src/num_src + loss_dis_tar)
                 + ALPHA * (loss_cls_src/num_src + loss_cls_tar) + BETA * orthogonality_loss_multi(
-                    src_shared_features, src_private_features, tar_shared_feature, tar_private_feature)
+                    src_shared_features, src_private_features, tar_shared_feature, tar_private_feature) + 0.4 * loss_mmd
 
                 ## 对比实验，去掉权重
                 # loss = -LAMBDA * (loss_dis_src1 + loss_dis_src2 + loss_dis_tar) + (
