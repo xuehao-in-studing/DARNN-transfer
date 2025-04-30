@@ -1,0 +1,396 @@
+第一次实验
+
+C:\Users\16601\.conda\envs\pytorch_seq2seq\python.exe D:\zxh\DARNN-transfer\src\run_predicts.py 
+hel
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DJ_5']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DJ_5
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.9131592735648155
+RMSE: 0.06520568579435349
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_1
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.7919477820396423
+RMSE: 0.12788377702236176
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_2
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.7829067558050156
+RMSE: 0.1271364986896515
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_1
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.7961533069610596
+RMSE: 0.12816105782985687
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_2
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.7602522969245911
+RMSE: 0.137435644865036
+==> Predict finished
+
+experiments finished, 5 experiments have been run, consume 0.16 minutes.
+
+进程已结束，退出代码为 0
+
+
+第二次实验 hidden-32
+C:\Users\16601\.conda\envs\pytorch_seq2seq\python.exe D:\zxh\DARNN-transfer\src\run_predicts.py 
+hel
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DJ_5']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DJ_5
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.9478576071560383
+RMSE: 0.03658884018659592
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_1
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8872686624526978
+RMSE: 0.07389135658740997
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_2
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.89453125
+RMSE: 0.05804675072431564
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_1
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8624121993780136
+RMSE: 0.08275847882032394
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_2
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8297409862279892
+RMSE: 0.09938066452741623
+==> Predict finished
+
+experiments finished, 5 experiments have been run, consume 0.17 minutes.
+
+进程已结束，退出代码为 0
+
+第三次实验 hidden=16
+
+C:\Users\16601\.conda\envs\pytorch_seq2seq\python.exe D:\zxh\DARNN-transfer\src\run_predicts.py 
+hel
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DJ_5']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DJ_5
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8925161808729172
+RMSE: 0.08264413475990295
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_1
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8672936111688614
+RMSE: 0.0818740501999855
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_2
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.875684954226017
+RMSE: 0.06496317684650421
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_1
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8560361564159393
+RMSE: 0.08720386773347855
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_2
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8347860723733902
+RMSE: 0.09816078841686249
+==> Predict finished
+
+experiments finished, 5 experiments have been run, consume 0.17 minutes.
+
+进程已结束，退出代码为 0
+
+第四次实验 hidden-64
+C:\Users\16601\.conda\envs\pytorch_seq2seq\python.exe D:\zxh\DARNN-transfer\src\run_predicts.py 
+hel
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DJ_5']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DJ_5
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.9512589424848557
+RMSE: 0.034540437161922455
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_1
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8812125399708748
+RMSE: 0.07480289787054062
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_2
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8904118612408638
+RMSE: 0.05948676913976669
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_1
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8646384477615356
+RMSE: 0.08279585838317871
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_2
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8392472118139267
+RMSE: 0.09589612483978271
+==> Predict finished
+
+experiments finished, 5 experiments have been run, consume 0.17 minutes.
+
+进程已结束，退出代码为 0
+
+第五次实验 hidden=128
+C:\Users\16601\.conda\envs\pytorch_seq2seq\python.exe D:\zxh\DARNN-transfer\src\run_predicts.py 
+hel
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DJ_5']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DJ_5
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.9457769729197025
+RMSE: 0.03845895081758499
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_1
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8795973137021065
+RMSE: 0.07543135434389114
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_2
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8799767941236496
+RMSE: 0.06401055306196213
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_1
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.8651815801858902
+RMSE: 0.08144381642341614
+==> Predict finished
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_2
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+==> Use accelerator:  cuda:0
+Accuracy: 0.7993323355913162
+RMSE: 0.11439559608697891
+==> Predict finished
+
+experiments finished, 5 experiments have been run, consume 0.17 minutes.
+
+进程已结束，退出代码为 0
+
+第六次实验 hidden：32
+
+D:\Anaconda\envs\pytorch\python.exe E:\TBM_HX\DARNN-transfer\src\run_predicts.py 
+hel
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DJ_5']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DJ_5
+==> Use accelerator:  cpu
+==> Use accelerator:  cpu
+==> Use accelerator:  cpu
+Accuracy: 0.9467268213629723
+RMSE: 0.0370112881064415
+==> Predict finished
+
+Error in ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DJ_5']:
+E:\TBM_HX\DARNN-transfer\src\predict.py:53: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model.load_state_dict(torch.load(model_path), )
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_1
+==> Use accelerator:  cpu
+==> Use accelerator:  cpu
+==> Use accelerator:  cpu
+Accuracy: 0.8873788192868233
+RMSE: 0.07341395318508148
+==> Predict finished
+
+Error in ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_1']:
+E:\TBM_HX\DARNN-transfer\src\predict.py:53: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model.load_state_dict(torch.load(model_path), )
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DW_2
+==> Use accelerator:  cpu
+==> Use accelerator:  cpu
+==> Use accelerator:  cpu
+Accuracy: 0.8850052356719971
+RMSE: 0.06111164391040802
+==> Predict finished
+
+Error in ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DW_2']:
+E:\TBM_HX\DARNN-transfer\src\predict.py:53: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model.load_state_dict(torch.load(model_path), )
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_1']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_1
+==> Use accelerator:  cpu
+==> Use accelerator:  cpu
+==> Use accelerator:  cpu
+Accuracy: 0.8622726798057556
+RMSE: 0.07952598482370377
+==> Predict finished
+
+Error in ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_1']:
+E:\TBM_HX\DARNN-transfer\src\predict.py:53: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model.load_state_dict(torch.load(model_path), )
+
+Output of ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_2']:
+==> Load dataset ...
+==> Initialize DALSTM model ...
+==> target domain is HZW, object_col is DX_DS_2
+==> Use accelerator:  cpu
+==> Use accelerator:  cpu
+==> Use accelerator:  cpu
+Accuracy: 0.8402440696954727
+RMSE: 0.09654585272073746
+==> Predict finished
+
+Error in ['python', 'predicts.py', '--targetdomain', 'HZW', '--object_col', 'DX_DS_2']:
+E:\TBM_HX\DARNN-transfer\src\predict.py:53: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model.load_state_dict(torch.load(model_path), )
+
+experiments finished, 5 experiments have been run, consume 0.13 minutes.
+
+Process finished with exit code 0
+

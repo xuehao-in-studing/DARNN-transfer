@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 from torch import nn
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from src.CORAL import CORAL
 from src.FDWDANN import FDW_DANN
@@ -61,6 +62,7 @@ def train(args):
     list_test_tar = list(enumerate(test_data_trg))
     # Training
     data_src_len_max = max(len(list_src1), len(list_src2))
+    writer = SummaryWriter('../runs/FDW_DANN')  # 指定日志目录
 
     data_src_max = data_src1
     data_src = data_src2
@@ -168,6 +170,18 @@ def train(args):
                 #         (1 - BETA) * (loss_pred_src1 + loss_pred_src2) + BETA * loss_pred_tar)
 
                 loss.backward()
+
+                ## gard visualization
+                global_step = epoch * iter_per_epoch + batch_id  # 全局步数
+                for name, param in model.named_parameters():
+                    if param.requires_grad and param.grad is not None:
+                        # 记录梯度范数
+                        grad_norm = param.grad.norm()
+                        writer.add_scalar(f'Gradients_Norm/{name}', grad_norm, global_step)
+
+                        # (可选) 记录梯度值的分布直方图 (可能比较耗资源)
+                        # writer.add_histogram(f'Gradients_Hist/{name}', param.grad, global_step)
+
                 model.shared_feature_extractor.encoder_optimizer.step()
                 model.shared_feature_extractor.decoder_optimizer.step()
                 model.src1_feature_extractor.encoder_optimizer.step()
