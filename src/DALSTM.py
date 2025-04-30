@@ -120,7 +120,7 @@ class Decoder(nn.Module):
             hidden_size=decoder_num_hidden
         )
         self.fc = nn.Linear(encoder_num_hidden + 1, 1)
-        self.fc_final = nn.Linear(decoder_num_hidden + encoder_num_hidden, 1)
+        # self.fc_final = nn.Linear(decoder_num_hidden + encoder_num_hidden, 1)
 
         self.fc.weight.data.normal_()
 

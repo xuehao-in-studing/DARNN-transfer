@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 from torch import nn
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from src.FSDANN import FS_DANN
@@ -44,6 +45,7 @@ def train(args):
     criterion_pred_tar = nn.MSELoss()
     criterion_pred_src_private = nn.MSELoss()
     criterion_pred_tar_private = nn.MSELoss()
+    writer = SummaryWriter('../runs/FS_DANN')  # 指定日志目录
 
     LAMBDA = args.LAMBDA
     BETA = args.BETA
@@ -106,6 +108,17 @@ def train(args):
                         ALPHA * loss_cls_private + BETA * loss_orth)
 
                 loss.backward()
+                ## gard visualization
+                global_step = epoch * iter_per_epoch + batch_id  # 全局步数
+                for name, param in model.named_parameters():
+                    if param.requires_grad and param.grad is not None:
+                        print(f"Logging grad for: {name}")  # 打印参数名
+                        # 记录梯度范数
+                        grad_norm = param.grad.norm()
+                        writer.add_scalar(f'Gradients_Norm/{name}', grad_norm, global_step)
+                print("-----------------------------")
+                        # (可选) 记录梯度值的分布直方图 (可能比较耗资源)
+                        # writer.add_histogram(f'Gradients_Hist/{name}', param.grad, global_step)
                 model.shared_feature_extractor.encoder_optimizer.step()
                 model.shared_feature_extractor.decoder_optimizer.step()
                 model.src_feature_extractor.encoder_optimizer.step()

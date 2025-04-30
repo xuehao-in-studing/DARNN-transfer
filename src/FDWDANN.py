@@ -76,14 +76,6 @@ class FDW_DANN(nn.Module):
                                                                          self.shared_regressor.parameters()),
                                                            lr=self.learning_rate)
 
-        self.src1_feature_extractor_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad,
-                                                                               self.src1_feature_extractor.parameters()),
-                                                                 lr=self.learning_rate)
-
-        self.src2_feature_extractor_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad,
-                                                                               self.src2_feature_extractor.parameters()),
-                                                                 lr=self.learning_rate)
-
         self.domain_discriminator_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad,
                                                                              self.domain_discriminator.parameters()),
                                                                lr=self.learning_rate)
@@ -99,30 +91,30 @@ class FDW_DANN(nn.Module):
 
     def forward(self, X, y_prev, alpha):
         # Extract features from source and target using DA-RNN Encoder
-        shared_feature = self.shared_feature_extractor(X, y_prev)
+        _shared_feature = self.shared_feature_extractor(X, y_prev)
 
-        src1_private_feature = self.src1_feature_extractor(X, y_prev)
-        src2_private_feature = self.src2_feature_extractor(X, y_prev)
+        _src1_private_feature = self.src1_feature_extractor(X, y_prev)
+        _src2_private_feature = self.src2_feature_extractor(X, y_prev)
 
-        tar_private_feature = self.tar_feature_extractor(X, y_prev)
+        _tar_private_feature = self.tar_feature_extractor(X, y_prev)
 
-        reverse_shared_feature = ReverseLayerF.apply(shared_feature, alpha)
+        reverse_shared_feature = ReverseLayerF.apply(_shared_feature, alpha)
 
         # Domain Adaptation: Forward pass through the domain classifier (for adversarial loss)
-        domain_pred = self.domain_discriminator(reverse_shared_feature.view(shared_feature.size(0), -1))
+        _domain_pred = self.domain_discriminator(reverse_shared_feature.view(_shared_feature.size(0), -1))
 
-        src1_domain_class = self.domain_classifier(src1_private_feature.view(shared_feature.size(0), -1))
-        src2_domain_class = self.domain_classifier(src2_private_feature.view(shared_feature.size(0), -1))
-        tar_domain_class = self.domain_classifier(tar_private_feature.view(shared_feature.size(0), -1))
+        _src1_domain_class = self.domain_classifier(_src1_private_feature.view(_shared_feature.size(0), -1))
+        _src2_domain_class = self.domain_classifier(_src2_private_feature.view(_shared_feature.size(0), -1))
+        _tar_domain_class = self.domain_classifier(_tar_private_feature.view(_shared_feature.size(0), -1))
 
         # src_private_pred = self.private_regressor(src1_private_feature.view(src1_private_feature.size(0), -1))
-        tar_private_pred = self.private_regressor(tar_private_feature.view(tar_private_feature.size(0), -1))
+        _tar_private_pred = self.private_regressor(_tar_private_feature.view(_tar_private_feature.size(0), -1))
 
         # Classification: Forward pass through the final task classifier
-        val_pred = self.shared_regressor(shared_feature.view(shared_feature.size(0), -1))
+        _val_pred = self.shared_regressor(_shared_feature.view(_shared_feature.size(0), -1))
 
-        return (val_pred, domain_pred, src1_domain_class, src2_domain_class, tar_domain_class, tar_private_pred,
-                shared_feature, src1_private_feature, src2_private_feature, tar_private_feature)
+        return (_val_pred, _domain_pred, _src1_domain_class, _src2_domain_class, _tar_domain_class, _tar_private_pred,
+                _shared_feature, _src1_private_feature, _src2_private_feature, _tar_private_feature)
 
 
 if __name__ == '__main__':

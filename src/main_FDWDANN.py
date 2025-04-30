@@ -63,6 +63,9 @@ def train(args):
     # Training
     data_src_len_max = max(len(list_src1), len(list_src2))
     writer = SummaryWriter('../runs/FDW_DANN')  # 指定日志目录
+    print(f"Logging model type: {type(model)}")
+    print(f"Has src1_feature_extractor: {hasattr(model, 'src1_feature_extractor')}")
+    print(f"Has src2_feature_extractor: {hasattr(model, 'src2_feature_extractor')}")
 
     data_src_max = data_src1
     data_src = data_src2
@@ -93,14 +96,14 @@ def train(args):
                     device)
 
                 # Zero the gradients
-                model.shared_feature_extractor.encoder_optimizer.zero_grad()
-                model.shared_feature_extractor.decoder_optimizer.zero_grad()
                 model.src1_feature_extractor.encoder_optimizer.zero_grad()
-                model.src1_feature_extractor.decoder_optimizer.zero_grad()
                 model.src2_feature_extractor.encoder_optimizer.zero_grad()
+                model.src1_feature_extractor.decoder_optimizer.zero_grad()
                 model.src2_feature_extractor.decoder_optimizer.zero_grad()
                 model.tar_feature_extractor.encoder_optimizer.zero_grad()
                 model.tar_feature_extractor.decoder_optimizer.zero_grad()
+                model.shared_feature_extractor.encoder_optimizer.zero_grad()
+                model.shared_feature_extractor.decoder_optimizer.zero_grad()
                 model.shared_regressor_optimizer.zero_grad()
                 model.private_regressor_optimizer.zero_grad()
                 model.domain_classifier_optimizer.zero_grad()
@@ -137,13 +140,12 @@ def train(args):
                 two_tensor = torch.ones(domain_pred_src1.shape[0]).long().to(device) * 2
                 src_domain_label = [one_tensor, two_tensor]
 
-
                 loss_dis_tar = criterion_dis_tar(domain_pred_tar, zero_tensor)
 
                 loss_pred_tar = criterion_pred_tar(val_pred_tar, y_tar_true)
                 loss_pred_tar_private = criterion_pred_tar(tar_private_pred, y_tar_true)
                 loss_dis_src = sum(
-                    w* crit(pred, label)
+                    w * crit(pred, label)
                     for crit, pred, label, w in zip(criterion_dis_src, domain_pred_src, src_domain_label, weight_mmd)
                 )
                 loss_pred_src = sum(
@@ -151,18 +153,21 @@ def train(args):
                     for crit, pred, label, w in
                     zip(criterion_pred_src, val_pred_src, [y_src1_true, y_src2_true], weight_mmd)
                 )
-                loss_cls_src = sum(
-                    crit(pred, label)
-                    for crit, pred, label in
-                    zip(criterion_cls_src, domain_pred_src_class, src_domain_label)
-                )
+                # loss_cls_src = sum(
+                #     crit(pred, label)
+                #     for crit, pred, label in
+                #     zip(criterion_cls_src, domain_pred_src_class, src_domain_label)
+                # )
+                loss_cls_src = criterion_cls_src[0](src1_domain_class, one_tensor) + criterion_cls_src[1](
+                    src2_domain_class, two_tensor)
+
                 loss_cls_tar = criterion_cls_tar(tar_domain_class, zero_tensor)
 
                 loss_mmd = mix_rbf_mmd2(src1_shared_feature, src2_shared_feature, [0.1, 0.5, 1.0])
 
-                loss = loss_pred_src/num_src + loss_pred_tar + loss_pred_tar_private
-                - LAMBDA * (loss_dis_src/num_src + loss_dis_tar)
-                + ALPHA * (loss_cls_src/num_src + loss_cls_tar) + BETA * orthogonality_loss_multi(
+                loss = loss_pred_src / num_src + loss_pred_tar + loss_pred_tar_private - LAMBDA * (
+                            loss_dis_src / num_src + loss_dis_tar) + ALPHA * (
+                                   loss_cls_src / num_src + loss_cls_tar) + BETA * orthogonality_loss_multi(
                     src_shared_features, src_private_features, tar_shared_feature, tar_private_feature) + 0.4 * loss_mmd
 
                 ## 对比实验，去掉权重
@@ -175,12 +180,13 @@ def train(args):
                 global_step = epoch * iter_per_epoch + batch_id  # 全局步数
                 for name, param in model.named_parameters():
                     if param.requires_grad and param.grad is not None:
+                        # print(f"Logging grad for: {name}")  # 打印参数名
                         # 记录梯度范数
                         grad_norm = param.grad.norm()
                         writer.add_scalar(f'Gradients_Norm/{name}', grad_norm, global_step)
-
-                        # (可选) 记录梯度值的分布直方图 (可能比较耗资源)
-                        # writer.add_histogram(f'Gradients_Hist/{name}', param.grad, global_step)
+                # print("-----------------------------")
+                # (可选) 记录梯度值的分布直方图 (可能比较耗资源)
+                # writer.add_histogram(f'Gradients_Hist/{name}', param.grad, global_step)
 
                 model.shared_feature_extractor.encoder_optimizer.step()
                 model.shared_feature_extractor.decoder_optimizer.step()
