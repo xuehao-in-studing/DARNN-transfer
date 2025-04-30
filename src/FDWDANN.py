@@ -76,6 +76,14 @@ class FDW_DANN(nn.Module):
                                                                          self.shared_regressor.parameters()),
                                                            lr=self.learning_rate)
 
+        self.src1_feature_extractor_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad,
+                                                                               self.src1_feature_extractor.parameters()),
+                                                                 lr=self.learning_rate)
+
+        self.src2_feature_extractor_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad,
+                                                                               self.src2_feature_extractor.parameters()),
+                                                                 lr=self.learning_rate)
+
         self.domain_discriminator_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad,
                                                                              self.domain_discriminator.parameters()),
                                                                lr=self.learning_rate)
