@@ -166,7 +166,8 @@ def train(args):
 
                 loss_dis_src = sum(
                     w * crit(pred, label)
-                    for crit, pred, label, w in zip(criterion_dis_src, domain_pred_srcs, src_domain_label, weight_mmd)
+                    for crit, pred, label, w in
+                    zip(criterion_dis_src, domain_pred_srcs, [one_tensor, one_tensor], weight_mmd)
                 )
                 loss_dis = loss_dis_src / NUM_SRC + criterion_dis_tar(domain_pred_tar, zero_tensor)
 
@@ -178,7 +179,7 @@ def train(args):
                 loss_cls_tar = criterion_cls_tar(tar_domain_class, zero_tensor)
                 loss_cls = loss_cls_src / NUM_SRC + loss_cls_tar
 
-                loss_mmd = mix_rbf_mmd2(src1_shared_feature,src2_shared_feature, [0.1, 0.5, 1.0])
+                loss_mmd = mix_rbf_mmd2(src1_shared_feature, src2_shared_feature, [0.1, 0.5, 1.0])
                 loss = loss_pred - LAMBDA * loss_dis + ALPHA * loss_cls + GAMMA * loss_mmd + BETA * loss_diff
 
                 ## 对比实验，去掉权重

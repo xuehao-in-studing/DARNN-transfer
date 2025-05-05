@@ -60,7 +60,7 @@ class FDW_DANN(nn.Module):
                                             self.parallel)
 
         self.domain_discriminator1 = nn.Sequential(
-            nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 3),
+            nn.Linear(self.encoder_num_hidden + self.decoder_num_hidden, 2),
             # nn.Linear(32, 2),
             # nn.ReLU(),
             # nn.LogSoftmax(dim=1)
@@ -145,7 +145,6 @@ if __name__ == '__main__':
     (val_pred_src1, domain_pred1, _, src1_domain_class, _, _,
      _, shared_feature_src1, src1_private_feature, _, _) = (
         model(dummy_X_src, dummy_y_prev_src, 0.5))
-
     (val_pred_src2, _, domain_pred2, _, src2_domain_class, _,
      _, shared_feature_src2, _, src2_private_feature, _) = (
         model(dummy_X_src, dummy_y_prev_src, 0.5))

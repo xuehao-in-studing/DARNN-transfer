@@ -62,8 +62,11 @@ def predict(args):
     for batch_j, (x_tar, y_tar_prev, y_tar_true) in test_data:
         model.eval()
         x_tar, y_tar_prev, y_tar_true = x_tar.to(device), y_tar_prev.to(device), y_tar_true.to(device)
-        (val_pred_tar, domain_pred_tar, _, _, tar_domain_class, tar_private_pred, tar_shared_feature, _, _,
-         tar_private_feature) = model(x_tar, y_tar_prev, 0.5)  ## FSDANN
+        (val_pred_tar, _, _, _, _, tar_domain_class,
+         tar_private_pred, tar_shared_feature, _, _, tar_private_feature)= model(x_tar, y_tar_prev, 0.5)
+
+        # (val_pred_tar, domain_pred_tar, _, _, tar_domain_class, tar_private_pred, tar_shared_feature, _, _,
+        #  tar_private_feature) = model(x_tar, y_tar_prev, 0.5)  ## FSDANN
         # pred_tar, domain_pred_tar = model(x_tar, y_tar_prev, 0.5) ## DANN
         if batch_j == 0:
             y_preds_shared = val_pred_tar.detach().cpu().numpy()
